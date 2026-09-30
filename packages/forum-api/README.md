@@ -17,4 +17,9 @@ const page = await forumApi.getComments('chapter-123', {
   page: 1,
   pageSize: 20,
 });
+
+const replies = await forumApi.getReplies('chapter-123', page.items[0].id, {
+  page: 1,
+  pageSize: 20,
+});
 ```

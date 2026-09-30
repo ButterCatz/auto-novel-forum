@@ -7,7 +7,7 @@ import type { PostComment } from '@/api';
 import XAsyncContent from '@/ui/XAsyncContent.vue';
 import XPagination from '@/ui/XPagination.vue';
 
-import CommentListItem from './CommentListItem.vue';
+import CommentThread from './CommentThread.vue';
 
 defineProps<{
   comments: PostComment[];
@@ -91,13 +91,13 @@ const emit = defineEmits<{
       </template>
 
       <div class="divide-y divide-divider">
-        <CommentListItem
+        <CommentThread
           v-for="comment in comments"
           :key="comment.id"
           :comment="comment"
           :locked="locked"
           :post-id="postId"
-          :replying="replyToId === comment.id"
+          :reply-to-id="replyToId"
           @reply="emit('reply', $event)"
           @cancel-reply="emit('cancelReply')"
           @created="emit('created', $event)"

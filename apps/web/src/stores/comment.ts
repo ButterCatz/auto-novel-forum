@@ -6,6 +6,7 @@ import {
   authUser,
   createPostComment,
   deletePostComment,
+  getPostCommentReplies,
   getPostComments,
   setPostCommentStatus,
   updatePostComment,
@@ -22,9 +23,16 @@ const commentsKey = () => ['comments', viewerKey.value];
 const pageKey = (postId: number, page: number, pageSize: number) => [
   ...commentsKey(),
   postId,
+  'roots',
   page,
   pageSize,
 ];
+const repliesKey = (
+  postId: number,
+  rootId: number,
+  page: number,
+  pageSize: number,
+) => [...commentsKey(), postId, 'replies', rootId, page, pageSize];
 
 export const useCommentStore = defineStore('comment', () => {
   const cache = useQueryCache();
@@ -104,16 +112,37 @@ export const useCommentStore = defineStore('comment', () => {
       total: 0,
     };
     const entries = cache.getEntries(filter);
+    const rootEntries = entries.filter((entry) => entry.key.includes('roots'));
     const alreadyIncluded = entries.some((entry) =>
       (entry.state.value.data as Page<PostComment> | undefined)?.items.some(
         (item) => item.id === comment.id,
       ),
     );
+    if (comment.rootId != null) {
+      for (const entry of rootEntries) {
+        const page = entry.state.value.data as Page<PostComment> | undefined;
+        if (!page) continue;
+        if (entry.key.includes('roots')) {
+          cache.setQueryData<Page<PostComment>>(entry.key, {
+            ...page,
+            items: page.items.map((item) =>
+              item.id === comment.rootId
+                ? { ...item, replyCount: (item.replyCount ?? 0) + 1 }
+                : item,
+            ),
+          });
+        }
+      }
+      void cache.invalidateQueries({
+        key: [...commentsKey(), comment.postId, 'replies', comment.rootId],
+      });
+      return Math.max(1, Math.ceil(current.total / pageSize));
+    }
     const lastPage = Math.max(
       1,
       Math.ceil((current.total + (alreadyIncluded ? 0 : 1)) / pageSize),
     );
-    for (const entry of entries) {
+    for (const entry of rootEntries) {
       const page = entry.state.value.data as Page<PostComment> | undefined;
       if (page)
         cache.setQueryData<Page<PostComment>>(entry.key, {
@@ -123,16 +152,7 @@ export const useCommentStore = defineStore('comment', () => {
     }
     const items = [...current.items];
     if (!items.some((item) => item.id === comment.id)) {
-      if (comment.rootId != null) {
-        const lastReplyIndex = items.reduce(
-          (last, item, index) =>
-            item.id === comment.rootId || item.rootId === comment.rootId
-              ? index
-              : last,
-          -1,
-        );
-        if (lastReplyIndex >= 0) items.splice(lastReplyIndex + 1, 0, comment);
-      } else if (currentPage === lastPage) items.push(comment);
+      if (currentPage === lastPage) items.push(comment);
     }
     cache.setQueryData<Page<PostComment>>(key, {
       items,
@@ -147,7 +167,8 @@ export const useCommentStore = defineStore('comment', () => {
     const comment = await updatePostComment(id, content);
     if (viewer === viewerKey.value) {
       updateCachedComments(
-        (item) => (item.id === id ? comment : item),
+        (item) =>
+          item.id === id ? { ...comment, replyCount: item.replyCount } : item,
         comment.postId,
       );
     }
@@ -252,6 +273,39 @@ export function useCommentPageQuery(
     comments: computed(() => query.data.value?.items ?? []),
     total: computed(() => query.data.value?.total ?? 0),
     loading: computed(() => !!toValue(postId) && query.isPending.value),
+    error: computed(() =>
+      !query.data.value && query.error.value ? query.error.value.message : '',
+    ),
+    refresh: () => query.refresh(),
+    retry: () => query.refetch(),
+  };
+}
+
+export function useCommentReplyPageQuery(
+  postId: MaybeRefOrGetter<number>,
+  rootId: MaybeRefOrGetter<number>,
+  page: MaybeRefOrGetter<number>,
+  pageSize: number,
+  enabled: MaybeRefOrGetter<boolean>,
+) {
+  const query = useQuery({
+    key: () =>
+      repliesKey(toValue(postId), toValue(rootId), toValue(page), pageSize),
+    enabled: () => toValue(enabled) && !!toValue(postId) && !!toValue(rootId),
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
+    query: ({ signal }) =>
+      getPostCommentReplies(
+        toValue(postId),
+        toValue(rootId),
+        { page: toValue(page), pageSize },
+        signal,
+      ),
+  });
+  return {
+    replies: computed(() => query.data.value?.items ?? []),
+    total: computed(() => query.data.value?.total ?? 0),
+    loading: computed(() => toValue(enabled) && query.isPending.value),
     error: computed(() =>
       !query.data.value && query.error.value ? query.error.value.message : '',
     ),

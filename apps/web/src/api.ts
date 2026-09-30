@@ -62,6 +62,7 @@ export interface PostComment {
   status: number;
   createdAt: string;
   updatedAt: string;
+  replyCount?: number;
 }
 
 export function getPosts(
@@ -185,6 +186,23 @@ export function getPostComments(
 ) {
   return client
     .get(`post/${id}/comment`, {
+      searchParams: {
+        page: params.page,
+        page_size: params.pageSize,
+      },
+      signal,
+    })
+    .json<Page<PostComment>>();
+}
+
+export function getPostCommentReplies(
+  postId: number,
+  rootId: number,
+  params: { page: number; pageSize: number },
+  signal?: AbortSignal,
+) {
+  return client
+    .get(`post/${postId}/comment/${rootId}/reply`, {
       searchParams: {
         page: params.page,
         page_size: params.pageSize,

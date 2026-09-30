@@ -13,6 +13,7 @@ export interface Comment {
   status: number;
   createdAt: string;
   updatedAt: string;
+  replyCount?: number;
 }
 
 export interface CommentPage {
@@ -63,6 +64,22 @@ export function createForumApi(options: ForumApiOptions) {
     ) {
       return client
         .get(encodeURIComponent(subjectKey), {
+          searchParams: {
+            page: params.page,
+            page_size: params.pageSize,
+          },
+          signal,
+        })
+        .json<CommentPage>();
+    },
+    getReplies(
+      subjectKey: string,
+      rootId: number,
+      params: CommentListParams,
+      signal?: AbortSignal,
+    ) {
+      return client
+        .get(`${encodeURIComponent(subjectKey)}/${rootId}/reply`, {
           searchParams: {
             page: params.page,
             page_size: params.pageSize,
