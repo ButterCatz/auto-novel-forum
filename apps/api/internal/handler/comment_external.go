@@ -200,7 +200,7 @@ func (h *externalCommentHandler) modifiableID(r *http.Request) (int16, int64, er
 	}
 
 	const modificationWindow = 20 * time.Minute
-	if time.Now().After(comment.CreatedAt.Add(modificationWindow)) {
+	if !principal.IsAdmin() && time.Now().After(comment.CreatedAt.Add(modificationWindow)) {
 		return 0, 0, httpx.Forbidden("评论只能在发布后 20 分钟内编辑或删除")
 	}
 	return subjectType, comment.ID, nil

@@ -73,6 +73,7 @@ type editableCommentRepository struct {
 	repository.CommentRepository
 	comment repository.Comment
 	updated bool
+	deleted bool
 }
 
 func (r *editableCommentRepository) Find(int16, int64) (*repository.Comment, error) {
@@ -83,6 +84,11 @@ func (r *editableCommentRepository) Update(_ int16, _ int64, content string) (*r
 	r.updated = true
 	r.comment.Content = content
 	return &r.comment, nil
+}
+
+func (r *editableCommentRepository) SetStatus(_ int16, _ int64, status int16) error {
+	r.deleted = status == repository.StatusDeleted
+	return nil
 }
 
 func TestAdminCanEditCommentAfterWindow(t *testing.T) {
@@ -118,6 +124,58 @@ func TestAdminCanEditCommentAfterWindow(t *testing.T) {
 			router.ServeHTTP(recorder, request)
 			if recorder.Code != tc.wantStatus || repo.updated != (tc.wantStatus == http.StatusOK) {
 				t.Fatalf("status=%d want=%d updated=%v body=%s", recorder.Code, tc.wantStatus, repo.updated, recorder.Body.String())
+			}
+		})
+	}
+}
+
+func TestAdminCanModifyExternalCommentAfterWindow(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		method     string
+		role       string
+		wantStatus int
+	}{
+		{"member cannot edit", http.MethodPatch, "member", http.StatusForbidden},
+		{"admin can edit", http.MethodPatch, "admin", http.StatusOK},
+		{"member cannot delete", http.MethodDelete, "member", http.StatusForbidden},
+		{"admin can delete", http.MethodDelete, "admin", http.StatusNoContent},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			repo := &editableCommentRepository{comment: repository.Comment{
+				ID: 7, SubjectType: repository.CommentSubjectNovel, SubjectKey: "chapter-1",
+				AuthorID: 1, CreatedAt: time.Now().Add(-21 * time.Minute),
+			}}
+			router := chi.NewRouter()
+			NewExternalCommentHandler(repo, nil).RegisterRoutes(router)
+			token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+				"sub": "tester", "uid": 1, "role": tc.role,
+			}).SignedString([]byte(httpx.AccessTokenSecret))
+			if err != nil {
+				t.Fatal(err)
+			}
+			body := ""
+			if tc.method == http.MethodPatch {
+				body = `{"content":"更新内容"}`
+			}
+			request := httptest.NewRequest(tc.method, "/novel/7", strings.NewReader(body))
+			request.Header.Set("Authorization", "Bearer "+token)
+			if body != "" {
+				request.Header.Set("Content-Type", "application/json")
+			}
+			recorder := httptest.NewRecorder()
+
+			router.ServeHTTP(recorder, request)
+
+			if recorder.Code != tc.wantStatus {
+				t.Fatalf("status=%d want=%d body=%s", recorder.Code, tc.wantStatus, recorder.Body.String())
+			}
+			wantModified := tc.role == "admin"
+			if tc.method == http.MethodPatch && repo.updated != wantModified {
+				t.Fatalf("updated=%v want=%v", repo.updated, wantModified)
+			}
+			if tc.method == http.MethodDelete && repo.deleted != wantModified {
+				t.Fatalf("deleted=%v want=%v", repo.deleted, wantModified)
 			}
 		})
 	}
