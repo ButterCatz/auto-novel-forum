@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { NModal } from 'naive-ui';
 
-import { useForumApi, type Comment, type CommentStatus } from '@/api';
+import { useForumApi, type Comment, type CommentStatusName } from '@/api';
 
 export interface CommentModerationTarget {
   comment: Comment;
-  status: CommentStatus;
+  status: CommentStatusName;
 }
 
 const props = defineProps<{ target: CommentModerationTarget | null }>();

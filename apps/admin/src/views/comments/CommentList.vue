@@ -13,7 +13,7 @@ import {
 } from 'naive-ui';
 import { computed } from 'vue';
 
-import type { Comment, CommentStatus } from '@/api';
+import type { Comment, CommentStatusName } from '@/api';
 
 import CommentListItem from './CommentListItem.vue';
 
@@ -32,14 +32,14 @@ const emit = defineEmits<{
   updatePage: [page: number];
   filterPost: [postId: number];
   resetFilters: [];
-  moderate: [comment: Comment, status: CommentStatus];
+  moderate: [comment: Comment, status: CommentStatusName];
 }>();
 
 const pageCount = computed(() =>
   Math.max(1, Math.ceil(props.total / props.pageSize)),
 );
 
-function forwardModeration(comment: Comment, status: CommentStatus) {
+function forwardModeration(comment: Comment, status: CommentStatusName) {
   emit('moderate', comment, status);
 }
 </script>

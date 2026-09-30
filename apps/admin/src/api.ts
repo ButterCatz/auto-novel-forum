@@ -9,6 +9,10 @@ export interface Page<T> {
   items: T[];
 }
 
+export type PostStatus = 0 | 1 | 2;
+export type CommentStatus = 0 | 1 | 2;
+export type CommentStatusName = 'published' | 'hidden' | 'deleted';
+
 export interface Category {
   id: number;
   slug: string;
@@ -49,11 +53,12 @@ export interface PostSummary {
   title: string;
   authorId: number;
   authorUsername: string;
-  status: number;
+  status: PostStatus;
   viewsCount: number;
   commentsCount: number;
   commentsLocked: boolean;
-  pinOrder?: number;
+  pinOrder: number | null;
+  favorited: boolean;
   createdAt: string;
   updatedAt: string;
   activeAt: string;
@@ -63,16 +68,14 @@ export interface PostSummary {
 export interface Comment {
   id: number;
   postId: number;
-  rootId?: number;
+  rootId: number | null;
   content: string;
   authorId: number;
   authorUsername: string;
-  status: number;
+  status: CommentStatus;
   createdAt: string;
   updatedAt: string;
 }
-
-export type CommentStatus = 'published' | 'hidden' | 'deleted';
 
 export interface CommentListParams {
   page: number;
@@ -230,7 +233,7 @@ export function createForumApi(authApi: AuthApi) {
         })
         .json<Page<PostSummary>>();
     },
-    setPostStatus(id: number, status: number) {
+    setPostStatus(id: number, status: PostStatus) {
       return client
         .put(endpoint(`admin/post/${id}/status`), { json: { status } })
         .text();
@@ -263,7 +266,7 @@ export function createForumApi(authApi: AuthApi) {
         })
         .json<Page<Comment>>();
     },
-    setCommentStatus(id: number, status: CommentStatus) {
+    setCommentStatus(id: number, status: CommentStatusName) {
       return client
         .put(endpoint(`admin/comment/${id}/status`), { json: { status } })
         .text();

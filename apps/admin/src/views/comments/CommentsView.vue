@@ -3,7 +3,7 @@ import { NAlert, NButton, NSpace, NText } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { useForumApi, type Comment, type CommentStatus } from '@/api';
+import { useForumApi, type Comment, type CommentStatusName } from '@/api';
 
 import CommentFilters from './CommentFilters.vue';
 import CommentList from './CommentList.vue';
@@ -110,7 +110,7 @@ function changePage(nextPage: number) {
   void loadComments();
 }
 
-function requestModeration(comment: Comment, status: CommentStatus) {
+function requestModeration(comment: Comment, status: CommentStatusName) {
   actionErrorMessage.value = '';
   successMessage.value = '';
   pendingAction.value = { comment, status };

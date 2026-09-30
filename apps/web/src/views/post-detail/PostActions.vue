@@ -145,7 +145,7 @@ function handleUserModerationOpenChange(open: boolean) {
 }
 
 function togglePin() {
-  const pinOrder = props.post.pinOrder == null ? 0 : undefined;
+  const pinOrder = props.post.pinOrder == null ? 0 : null;
   const request =
     pinOrder == null
       ? unpinPost(props.post.id)

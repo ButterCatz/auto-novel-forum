@@ -2,12 +2,12 @@
 import { DeleteOutlineOutlined, VisibilityOffOutlined } from '@vicons/material';
 import { NButton, NIcon, NTag, NText } from 'naive-ui';
 
-import type { Comment, CommentStatus } from '@/api';
+import type { Comment, CommentStatusName } from '@/api';
 
 defineProps<{ comment: Comment; actionsDisabled: boolean }>();
 const emit = defineEmits<{
   filterPost: [postId: number];
-  moderate: [comment: Comment, status: CommentStatus];
+  moderate: [comment: Comment, status: CommentStatusName];
 }>();
 
 function formatDate(value: string) {

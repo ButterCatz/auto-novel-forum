@@ -17,7 +17,7 @@ import {
 } from 'naive-ui';
 import { ref, watch } from 'vue';
 
-import type { PostSummary } from '@/api';
+import type { PostStatus, PostSummary } from '@/api';
 
 const props = defineProps<{
   post: PostSummary;
@@ -27,7 +27,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  setStatus: [post: PostSummary, status: number];
+  setStatus: [post: PostSummary, status: PostStatus];
   setCommentsLocked: [post: PostSummary, locked: boolean];
   setPinOrder: [post: PostSummary, pinOrder: number | null];
   reviewComments: [post: PostSummary];

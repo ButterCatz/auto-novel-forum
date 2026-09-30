@@ -10,6 +10,7 @@ import {
   getPostComments,
   setPostCommentStatus,
   updatePostComment,
+  type CommentStatus,
   type Page,
   type PostComment,
 } from '@/api';
@@ -175,7 +176,7 @@ export const useCommentStore = defineStore('comment', () => {
     return comment;
   }
 
-  function applyStatus(id: number, status: number) {
+  function applyStatus(id: number, status: CommentStatus) {
     updateCachedComments((comment) =>
       comment.id === id
         ? {

@@ -4,6 +4,8 @@ export {
   type CommentListParams,
   type CommentPage,
   type CommentType,
+  type CommentStatus,
+  type CommentStatusName,
   type CreateCommentRequest,
   type ForumApi,
   type ForumApiOptions,

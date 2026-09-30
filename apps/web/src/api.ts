@@ -12,6 +12,10 @@ export interface Page<T> {
   items: T[];
 }
 
+export type PostStatus = 0 | 1 | 2;
+export type CommentStatus = 0 | 1 | 2;
+export type CommentStatusName = 'published' | 'hidden' | 'deleted';
+
 export interface PostTag {
   id: number;
   name: string;
@@ -34,11 +38,11 @@ export interface PostSummary {
   title: string;
   authorId: number;
   authorUsername: string;
-  status: number;
+  status: PostStatus;
   viewsCount: number;
   commentsCount: number;
   commentsLocked: boolean;
-  pinOrder?: number;
+  pinOrder: number | null;
   favorited: boolean;
   createdAt: string;
   updatedAt: string;
@@ -59,7 +63,7 @@ export interface PostComment {
   content: string;
   authorId: number;
   authorUsername: string;
-  status: number;
+  status: CommentStatus;
   createdAt: string;
   updatedAt: string;
   replyCount?: number;
@@ -159,7 +163,7 @@ export function deletePost(id: number) {
   return client.delete(`post/${id}/`);
 }
 
-export function setPostStatus(id: number, status: number) {
+export function setPostStatus(id: number, status: PostStatus) {
   return client.put(`admin/post/${id}/status`, { json: { status } });
 }
 
@@ -229,10 +233,7 @@ export function deletePostComment(id: number) {
   return client.delete(`comment/${id}`);
 }
 
-export function setPostCommentStatus(
-  id: number,
-  status: 'published' | 'hidden' | 'deleted',
-) {
+export function setPostCommentStatus(id: number, status: CommentStatusName) {
   return client.put(`admin/comment/${id}/status`, { json: { status } });
 }
 

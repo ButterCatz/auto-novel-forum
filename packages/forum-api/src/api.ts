@@ -2,6 +2,8 @@ import type { KyInstance } from 'ky';
 
 /** Resource types supported by the forum service. */
 export type CommentType = 'novel';
+export type CommentStatus = 0 | 1 | 2;
+export type CommentStatusName = 'published' | 'hidden' | 'deleted';
 
 export interface Comment {
   id: number;
@@ -10,7 +12,7 @@ export interface Comment {
   content: string;
   authorId: number;
   authorUsername: string;
-  status: number;
+  status: CommentStatus;
   createdAt: string;
   updatedAt: string;
   replyCount?: number;
@@ -101,10 +103,7 @@ export function createForumApi(options: ForumApiOptions) {
     deleteComment(commentId: number) {
       return client.delete(String(commentId));
     },
-    setCommentStatus(
-      commentId: number,
-      status: 'published' | 'hidden' | 'deleted',
-    ) {
+    setCommentStatus(commentId: number, status: CommentStatusName) {
       return client.put(`${commentId}/status`, {
         json: { status },
       });

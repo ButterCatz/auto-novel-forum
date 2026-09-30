@@ -12,7 +12,7 @@ import {
 } from 'naive-ui';
 import { computed } from 'vue';
 
-import type { PostSummary } from '@/api';
+import type { PostStatus, PostSummary } from '@/api';
 
 import PostListItem from './PostListItem.vue';
 
@@ -30,7 +30,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   updatePage: [page: number];
   resetFilters: [];
-  setStatus: [post: PostSummary, status: number];
+  setStatus: [post: PostSummary, status: PostStatus];
   setCommentsLocked: [post: PostSummary, locked: boolean];
   setPinOrder: [post: PostSummary, pinOrder: number | null];
   reviewComments: [post: PostSummary];

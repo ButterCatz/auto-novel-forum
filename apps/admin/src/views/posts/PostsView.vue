@@ -7,6 +7,7 @@ import {
   useForumApi,
   type CategoryListItem,
   type PostSort,
+  type PostStatus,
   type PostSummary,
 } from '@/api';
 import { categoryTitle } from '@/category';
@@ -135,7 +136,7 @@ async function runAction(
   }
 }
 
-function setStatus(post: PostSummary, status: number) {
+function setStatus(post: PostSummary, status: PostStatus) {
   void runAction(post, () => api.setPostStatus(post.id, status), '状态已更新');
 }
 
