@@ -21,6 +21,11 @@ function changeStatus(value: string) {
   status.value = value as CommentStatusFilter | '';
   emit('search');
 }
+
+function changePostId(value: number | null) {
+  postId.value = value;
+  emit('search');
+}
 </script>
 
 <template>
@@ -32,6 +37,7 @@ function changeStatus(value: string) {
         clearable
         placeholder="搜索评论内容"
         @change="emit('search')"
+        @keyup.enter="emit('search')"
       />
     </FilterRow>
     <FilterRow label="作者">
@@ -41,6 +47,7 @@ function changeStatus(value: string) {
         clearable
         placeholder="搜索作者名字"
         @change="emit('search')"
+        @keyup.enter="emit('search')"
       />
     </FilterRow>
     <FilterRow label="帖子">
@@ -53,7 +60,7 @@ function changeStatus(value: string) {
         :show-button="false"
         clearable
         placeholder="全部帖子，可输入帖子 ID"
-        @change="emit('search')"
+        @change="changePostId"
       />
     </FilterRow>
     <FilterRow label="状态">
