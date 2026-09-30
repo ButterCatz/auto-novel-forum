@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { NButton, NInput, NInputNumber } from 'naive-ui';
+import { NInput, NInputNumber } from 'naive-ui';
 import FilterRow from '@/components/FilterRow.vue';
 import FilterChoiceGroup from '@/components/FilterChoiceGroup.vue';
 import type { CommentStatusFilter } from '@/api';
 
-const emit = defineEmits<{ search: []; reset: [] }>();
+const emit = defineEmits<{ search: [] }>();
 const query = defineModel<string>('query', { required: true });
 const authorName = defineModel<string>('authorName', { required: true });
 const postId = defineModel<number | null>('postId', { required: true });
@@ -63,11 +63,6 @@ function changeStatus(value: string) {
         @update:value="changeStatus"
       />
     </FilterRow>
-    <div>
-      <n-button size="small" quaternary @click="emit('reset')">
-        重置筛选
-      </n-button>
-    </div>
   </div>
 </template>
 

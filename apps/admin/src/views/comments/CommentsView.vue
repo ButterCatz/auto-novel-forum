@@ -155,7 +155,6 @@ watch(
       v-model:author-name="authorNameInput"
       v-model:status="statusInput"
       @search="search"
-      @reset="resetFilters"
     />
 
     <n-alert
