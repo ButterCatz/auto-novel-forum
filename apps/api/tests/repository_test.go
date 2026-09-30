@@ -86,7 +86,7 @@ func TestJetRepositories(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	otherTotal, otherComments, err := commentRepo.List(otherSubjectType, "novel:chapter-1", 20, 0)
+	otherTotal, otherComments, err := commentRepo.ListRoots(otherSubjectType, "novel:chapter-1", 20, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +103,7 @@ func TestJetRepositories(t *testing.T) {
 	if err := commentRepo.SetStatus(otherSubjectType, otherSubjectComment.ID, repository.StatusDeleted); err != nil {
 		t.Fatal(err)
 	}
-	otherTotal, otherComments, err = commentRepo.List(otherSubjectType, "novel:chapter-1", 20, 0)
+	otherTotal, otherComments, err = commentRepo.ListRoots(otherSubjectType, "novel:chapter-1", 20, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -166,12 +166,19 @@ func TestJetRepositories(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	commentTotal, comments, err := commentRepo.List(repository.CommentSubjectPost, repository.PostSubjectKey(post.ID), 20, 0)
+	commentTotal, comments, err := commentRepo.ListRoots(repository.CommentSubjectPost, repository.PostSubjectKey(post.ID), 20, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if commentTotal != 2 || len(comments) != 2 {
+	if commentTotal != 1 || len(comments) != 1 || comments[0].ReplyCount != 1 {
 		t.Fatalf("unexpected comments: total=%d items=%d", commentTotal, len(comments))
+	}
+	replyTotal, replies, err := commentRepo.ListReplies(repository.CommentSubjectPost, repository.PostSubjectKey(post.ID), root.ID, 20, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if replyTotal != 1 || len(replies) != 1 || replies[0].RootID == nil || *replies[0].RootID != root.ID {
+		t.Fatalf("unexpected replies: total=%d items=%#v", replyTotal, replies)
 	}
 
 	if err := favoriteRepo.Set(post.ID, 7, true); err != nil {
@@ -217,20 +224,19 @@ func TestJetRepositories(t *testing.T) {
 		if err := commentRepo.SetStatus(repository.CommentSubjectPost, root.ID, status); err != nil {
 			t.Fatal(err)
 		}
-		for offset := int64(0); offset < 2; offset++ {
-			total, items, err := commentRepo.List(repository.CommentSubjectPost, repository.PostSubjectKey(post.ID), 1, offset)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if total != 2 || len(items) != 1 {
-				t.Fatalf("moderation changed pagination: total=%d items=%#v", total, items)
-			}
-			if offset == 0 && (items[0].ID != root.ID || items[0].Status != status || items[0].Content != root.Content) {
-				t.Fatalf("moderated root or stored content changed: %#v", items[0])
-			}
-			if offset == 1 && (items[0].RootID == nil || *items[0].RootID != root.ID || items[0].Status != repository.StatusPublished) {
-				t.Fatalf("reply relationship changed: %#v", items[0])
-			}
+		total, items, err := commentRepo.ListRoots(repository.CommentSubjectPost, repository.PostSubjectKey(post.ID), 1, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if total != 1 || len(items) != 1 || items[0].ID != root.ID || items[0].Status != status || items[0].ReplyCount != 1 {
+			t.Fatalf("moderation changed root pagination: total=%d items=%#v", total, items)
+		}
+		replyTotal, replies, err := commentRepo.ListReplies(repository.CommentSubjectPost, repository.PostSubjectKey(post.ID), root.ID, 1, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if replyTotal != 1 || len(replies) != 1 || replies[0].Status != repository.StatusPublished {
+			t.Fatalf("moderation changed reply pagination: total=%d items=%#v", replyTotal, replies)
 		}
 	}
 	updatedCategory, _ := forumcategory.FindByID(forumcategory.FeedbackID)

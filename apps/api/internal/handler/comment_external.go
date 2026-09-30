@@ -23,6 +23,7 @@ func NewExternalCommentHandler(repo repository.CommentRepository, domains *domai
 
 func (h *externalCommentHandler) RegisterRoutes(router chi.Router) {
 	router.Get("/{type}/{subjectKey}", httpx.EH(h.list))
+	router.Get("/{type}/{subjectKey}/{rootId}/reply", httpx.EH(h.listReplies))
 	router.With(httpx.RequireMember).Post("/{type}/{subjectKey}", httpx.EH(h.create))
 	router.With(httpx.RequireMember).Patch("/{type}/{commentId}", httpx.EH(h.update))
 	router.With(httpx.RequireAccessToken).Delete("/{type}/{commentId}", httpx.EH(h.delete))
@@ -39,6 +40,13 @@ type externalCommentResponse struct {
 	Status         int16     `json:"status"`
 	CreatedAt      time.Time `json:"createdAt"`
 	UpdatedAt      time.Time `json:"updatedAt"`
+	ReplyCount     int64     `json:"replyCount,omitempty"`
+}
+
+func newExternalCommentThreadResponse(r *http.Request, value repository.CommentThread) externalCommentResponse {
+	response := newExternalCommentResponse(r, value.Comment)
+	response.ReplyCount = value.ReplyCount
+	return response
 }
 
 func newExternalCommentResponse(r *http.Request, value repository.Comment) externalCommentResponse {
@@ -89,9 +97,41 @@ func (h *externalCommentHandler) list(w http.ResponseWriter, r *http.Request) er
 	if err != nil {
 		return err
 	}
-	total, items, err := h.repo.List(subjectType, subjectKey, pagination.Limit, pagination.Offset)
+	total, items, err := h.repo.ListRoots(subjectType, subjectKey, pagination.Limit, pagination.Offset)
 	if err != nil {
 		return httpx.InternalError(err, "查询附属资源评论失败")
+	}
+	response := make([]externalCommentResponse, len(items))
+	for i, item := range items {
+		response[i] = newExternalCommentThreadResponse(r, item)
+	}
+	render.JSON(w, r, page[externalCommentResponse]{Total: total, Items: response})
+	return nil
+}
+
+func (h *externalCommentHandler) listReplies(w http.ResponseWriter, r *http.Request) error {
+	subjectType, err := externalCommentSubjectType(r)
+	if err != nil {
+		return err
+	}
+	subjectKey, err := externalCommentSubjectKey(r)
+	if err != nil {
+		return err
+	}
+	rootID, err := httpx.ParseParamPositiveInt(r, "rootId")
+	if err != nil {
+		return err
+	}
+	pagination, err := parsePagination(r.URL.Query(), 20, 100)
+	if err != nil {
+		return err
+	}
+	total, items, err := h.repo.ListReplies(subjectType, subjectKey, rootID, pagination.Limit, pagination.Offset)
+	if repository.IsNotFound(err) {
+		return httpx.NotFound("一级评论不存在")
+	}
+	if err != nil {
+		return httpx.InternalError(err, "查询附属资源评论回复失败")
 	}
 	response := make([]externalCommentResponse, len(items))
 	for i, item := range items {

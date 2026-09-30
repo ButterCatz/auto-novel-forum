@@ -86,6 +86,14 @@ create index if not exists idx_comment_subject_thread_created
     on comment (subject_type, subject_key, (coalesce(root_id, id)), created_at, id)
     where status = 0;
 
+create index if not exists idx_comment_subject_roots_created
+    on comment (subject_type, subject_key, created_at, id)
+    where root_id is null;
+
+create index if not exists idx_comment_subject_replies_created
+    on comment (subject_type, subject_key, root_id, created_at, id)
+    where root_id is not null;
+
 create index if not exists idx_comment_author_created
     on comment (author_id, created_at desc, id desc);
 

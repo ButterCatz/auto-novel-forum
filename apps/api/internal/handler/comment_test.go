@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -13,6 +14,60 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
 )
+
+type listingCommentRepository struct {
+	repository.CommentRepository
+	rootID int64
+}
+
+func (r *listingCommentRepository) ListRoots(_ int16, subjectKey string, limit, offset int64) (int64, []repository.CommentThread, error) {
+	return 1, []repository.CommentThread{{
+		Comment:    repository.Comment{ID: r.rootID, SubjectKey: subjectKey, Content: "一级评论"},
+		ReplyCount: 2,
+	}}, nil
+}
+
+func (r *listingCommentRepository) ListReplies(_ int16, subjectKey string, rootID, limit, offset int64) (int64, []repository.Comment, error) {
+	return 2, []repository.Comment{{
+		ID: 9, SubjectKey: subjectKey, RootID: &rootID, Content: "二级评论",
+	}}, nil
+}
+
+func TestExternalCommentRepliesArePaginatedSeparately(t *testing.T) {
+	repo := &listingCommentRepository{rootID: 7}
+	router := chi.NewRouter()
+	NewExternalCommentHandler(repo, nil).RegisterRoutes(router)
+
+	for _, tc := range []struct {
+		path           string
+		wantTotal      int64
+		wantID         int64
+		wantRootID     *int64
+		wantReplyCount int64
+	}{
+		{path: "/novel/chapter-1?page=1&page_size=10", wantTotal: 1, wantID: 7, wantReplyCount: 2},
+		{path: "/novel/chapter-1/7/reply?page=1&page_size=10", wantTotal: 2, wantID: 9, wantRootID: &repo.rootID},
+	} {
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, tc.path, nil))
+		if recorder.Code != http.StatusOK {
+			t.Fatalf("GET %s: status=%d body=%s", tc.path, recorder.Code, recorder.Body.String())
+		}
+		var response page[externalCommentResponse]
+		if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+			t.Fatal(err)
+		}
+		if response.Total != tc.wantTotal || len(response.Items) != 1 || response.Items[0].ID != tc.wantID || response.Items[0].ReplyCount != tc.wantReplyCount {
+			t.Fatalf("GET %s: unexpected response %#v", tc.path, response)
+		}
+		if tc.wantRootID == nil && response.Items[0].RootID != nil {
+			t.Fatalf("GET %s: expected a root comment", tc.path)
+		}
+		if tc.wantRootID != nil && (response.Items[0].RootID == nil || *response.Items[0].RootID != *tc.wantRootID) {
+			t.Fatalf("GET %s: unexpected root ID", tc.path)
+		}
+	}
+}
 
 type editableCommentRepository struct {
 	repository.CommentRepository

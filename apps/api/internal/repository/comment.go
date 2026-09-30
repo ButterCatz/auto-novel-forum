@@ -13,6 +13,11 @@ import (
 
 type Comment = model.Comment
 
+type CommentThread struct {
+	Comment
+	ReplyCount int64
+}
+
 const (
 	CommentSubjectPost  int16 = 0
 	CommentSubjectNovel int16 = 1
@@ -38,7 +43,8 @@ const CommentStatusAll int16 = -1
 
 type CommentRepository interface {
 	ListAdmin(filter CommentFilter, limit, offset int64) (int64, []Comment, error)
-	List(subjectType int16, subjectKey string, limit, offset int64) (int64, []Comment, error)
+	ListRoots(subjectType int16, subjectKey string, limit, offset int64) (int64, []CommentThread, error)
+	ListReplies(subjectType int16, subjectKey string, rootID, limit, offset int64) (int64, []Comment, error)
 	Find(subjectType int16, id int64) (*Comment, error)
 	Create(input CreateCommentInput) (*Comment, error)
 	Update(subjectType int16, id int64, content string) (*Comment, error)
@@ -50,9 +56,10 @@ type commentRepository struct{ db *sql.DB }
 
 func NewCommentRepository(db *sql.DB) CommentRepository { return &commentRepository{db: db} }
 
-func (r *commentRepository) List(subjectType int16, subjectKey string, limit, offset int64) (int64, []Comment, error) {
+func (r *commentRepository) ListRoots(subjectType int16, subjectKey string, limit, offset int64) (int64, []CommentThread, error) {
 	condition := table.Comment.SubjectType.EQ(Int16(subjectType)).
-		AND(table.Comment.SubjectKey.EQ(String(subjectKey)))
+		AND(table.Comment.SubjectKey.EQ(String(subjectKey))).
+		AND(table.Comment.RootID.IS_NULL())
 	countStmt := SELECT(COUNT(STAR)).FROM(table.Comment).WHERE(condition)
 	var count struct{ Count int64 }
 	if err := countStmt.Query(r.db, &count); err != nil {
@@ -61,15 +68,69 @@ func (r *commentRepository) List(subjectType int16, subjectKey string, limit, of
 	stmt := SELECT(table.Comment.AllColumns).
 		FROM(table.Comment).
 		WHERE(condition).
-		ORDER_BY(
-			IntExp(COALESCE(table.Comment.RootID, table.Comment.ID)).ASC(),
-			table.Comment.CreatedAt.ASC(),
-			table.Comment.ID.ASC(),
-		).
+		ORDER_BY(table.Comment.CreatedAt.ASC(), table.Comment.ID.ASC()).
 		LIMIT(limit).
 		OFFSET(offset)
 	var dest []Comment
 	if err := stmt.Query(r.db, &dest); err != nil {
+		return 0, nil, err
+	}
+	rootIDs := make([]int64, len(dest))
+	for i, comment := range dest {
+		rootIDs[i] = comment.ID
+	}
+	type replyCountRow struct {
+		RootID *int64
+		Count  int64
+	}
+	var replyCounts []replyCountRow
+	if len(rootIDs) > 0 {
+		err := SELECT(table.Comment.RootID, COUNT(STAR)).
+			FROM(table.Comment).
+			WHERE(table.Comment.SubjectType.EQ(Int16(subjectType)).
+				AND(table.Comment.SubjectKey.EQ(String(subjectKey))).
+				AND(table.Comment.RootID.IN(integerExpressions(rootIDs)...))).
+			GROUP_BY(table.Comment.RootID).
+			Query(r.db, &replyCounts)
+		if err != nil {
+			return 0, nil, err
+		}
+	}
+	countsByRoot := make(map[int64]int64, len(replyCounts))
+	for _, row := range replyCounts {
+		if row.RootID != nil {
+			countsByRoot[*row.RootID] = row.Count
+		}
+	}
+	threads := make([]CommentThread, len(dest))
+	for i, comment := range dest {
+		threads[i] = CommentThread{Comment: comment, ReplyCount: countsByRoot[comment.ID]}
+	}
+	return count.Count, threads, nil
+}
+
+func (r *commentRepository) ListReplies(subjectType int16, subjectKey string, rootID, limit, offset int64) (int64, []Comment, error) {
+	rootStmt := SELECT(table.Comment.ID).FROM(table.Comment).WHERE(
+		table.Comment.ID.EQ(Int64(rootID)).
+			AND(table.Comment.SubjectType.EQ(Int16(subjectType))).
+			AND(table.Comment.SubjectKey.EQ(String(subjectKey))).
+			AND(table.Comment.RootID.IS_NULL()),
+	)
+	var root struct{ ID int64 }
+	if err := rootStmt.Query(r.db, &root); err != nil {
+		return 0, nil, err
+	}
+	condition := table.Comment.SubjectType.EQ(Int16(subjectType)).
+		AND(table.Comment.SubjectKey.EQ(String(subjectKey))).
+		AND(table.Comment.RootID.EQ(Int64(rootID)))
+	var count struct{ Count int64 }
+	if err := SELECT(COUNT(STAR)).FROM(table.Comment).WHERE(condition).Query(r.db, &count); err != nil {
+		return 0, nil, err
+	}
+	var dest []Comment
+	if err := SELECT(table.Comment.AllColumns).FROM(table.Comment).WHERE(condition).
+		ORDER_BY(table.Comment.CreatedAt.ASC(), table.Comment.ID.ASC()).
+		LIMIT(limit).OFFSET(offset).Query(r.db, &dest); err != nil {
 		return 0, nil, err
 	}
 	return count.Count, dest, nil

@@ -113,6 +113,7 @@ func (h *postHandler) RegisterRoutes(router chi.Router) {
 		router.With(httpx.RequireAccessToken).Delete("/favorite", httpx.EH(h.unfavorite))
 		router.Get("/comment", httpx.EH(h.listComments))
 		router.With(httpx.RequireMember).Post("/comment", httpx.EH(h.createComment))
+		router.Get("/comment/{rootId}/reply", httpx.EH(h.listCommentReplies))
 	})
 }
 
@@ -364,7 +365,7 @@ func (h *postHandler) listComments(w http.ResponseWriter, r *http.Request) error
 	if err != nil {
 		return err
 	}
-	total, items, err := h.commentRepo.List(
+	total, items, err := h.commentRepo.ListRoots(
 		repository.CommentSubjectPost,
 		repository.PostSubjectKey(postID),
 		pagination.Limit,
@@ -375,9 +376,49 @@ func (h *postHandler) listComments(w http.ResponseWriter, r *http.Request) error
 	}
 	response := make([]commentResponse, len(items))
 	for i, item := range items {
-		response[i], err = newCommentResponse(r, item)
+		response[i], err = newCommentThreadResponse(r, item)
 		if err != nil {
 			return httpx.InternalError(err, "转换评论数据失败")
+		}
+	}
+	render.JSON(w, r, page[commentResponse]{Total: total, Items: response})
+	return nil
+}
+
+func (h *postHandler) listCommentReplies(w http.ResponseWriter, r *http.Request) error {
+	postID, err := httpx.ParseParamPositiveInt(r, "id")
+	if err != nil {
+		return err
+	}
+	rootID, err := httpx.ParseParamPositiveInt(r, "rootId")
+	if err != nil {
+		return err
+	}
+	if _, err := h.postRepo.Find(postID, false); err != nil {
+		return repoError(err, "查询帖子失败")
+	}
+	pagination, err := parsePagination(r.URL.Query(), 20, 100)
+	if err != nil {
+		return err
+	}
+	total, items, err := h.commentRepo.ListReplies(
+		repository.CommentSubjectPost,
+		repository.PostSubjectKey(postID),
+		rootID,
+		pagination.Limit,
+		pagination.Offset,
+	)
+	if repository.IsNotFound(err) {
+		return httpx.NotFound("一级评论不存在")
+	}
+	if err != nil {
+		return httpx.InternalError(err, "查询评论回复失败")
+	}
+	response := make([]commentResponse, len(items))
+	for i, item := range items {
+		response[i], err = newCommentResponse(r, item)
+		if err != nil {
+			return httpx.InternalError(err, "转换评论回复数据失败")
 		}
 	}
 	render.JSON(w, r, page[commentResponse]{Total: total, Items: response})

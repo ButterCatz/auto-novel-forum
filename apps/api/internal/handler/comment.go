@@ -66,6 +66,7 @@ type commentResponse struct {
 	Status         int16     `json:"status"`
 	CreatedAt      time.Time `json:"createdAt"`
 	UpdatedAt      time.Time `json:"updatedAt"`
+	ReplyCount     int64     `json:"replyCount,omitempty"`
 }
 
 func newCommentResponse(r *http.Request, value repository.Comment) (commentResponse, error) {
@@ -84,6 +85,12 @@ func newCommentResponse(r *http.Request, value repository.Comment) (commentRespo
 		CreatedAt:      value.CreatedAt,
 		UpdatedAt:      value.UpdatedAt,
 	}, nil
+}
+
+func newCommentThreadResponse(r *http.Request, value repository.CommentThread) (commentResponse, error) {
+	response, err := newCommentResponse(r, value.Comment)
+	response.ReplyCount = value.ReplyCount
+	return response, err
 }
 
 func publicCommentContent(r *http.Request, value repository.Comment) string {
