@@ -8,6 +8,7 @@ import {
   type CategoryListItem,
   type PostSort,
   type PostStatus,
+  type PostStatusFilter,
   type PostSummary,
 } from '@/api';
 import { categoryTitle } from '@/category';
@@ -29,13 +30,13 @@ const page = ref(1);
 const total = ref(0);
 const queryInput = ref('');
 const categoryInput = ref('');
-const statusInput = ref('');
+const statusInput = ref<PostStatusFilter | ''>('');
 const tagIdInput = ref<number | null>(null);
 const authorNameInput = ref('');
 const sortInput = ref<PostSort>('active');
 const query = ref('');
 const category = ref('');
-const status = ref('');
+const status = ref<PostStatusFilter | ''>('');
 const tagId = ref<number | null>(null);
 const authorName = ref('');
 const sort = ref<PostSort>('active');
@@ -67,7 +68,7 @@ async function loadPosts() {
       pageSize: PAGE_SIZE,
       query: query.value,
       category: category.value,
-      status: status.value,
+      status: status.value || undefined,
       tagId: tagId.value,
       authorName: authorName.value,
       sort: sort.value,
@@ -117,7 +118,7 @@ function reviewComments(post: PostSummary) {
 
 async function runAction(
   post: PostSummary,
-  action: () => Promise<string>,
+  action: () => Promise<void>,
   message: string,
 ) {
   if (busyPostId.value !== null) return;

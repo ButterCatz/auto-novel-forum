@@ -12,6 +12,8 @@ export interface Page<T> {
 export type PostStatus = 0 | 1 | 2;
 export type CommentStatus = 0 | 1 | 2;
 export type CommentStatusName = 'published' | 'hidden' | 'deleted';
+export type PostStatusFilter = 'all' | '0' | '1' | '2';
+export type CommentStatusFilter = 'all' | '0' | '1' | '2';
 
 export interface Category {
   id: number;
@@ -83,7 +85,7 @@ export interface CommentListParams {
   query?: string;
   authorName?: string;
   postId?: number | null;
-  status?: string;
+  status?: CommentStatusFilter;
 }
 
 interface TagRequest {
@@ -97,7 +99,7 @@ interface PostListParams {
   pageSize: number;
   query?: string;
   category?: string;
-  status?: string;
+  status?: PostStatusFilter;
   tagId?: number | null;
   authorId?: number | null;
   authorName?: string;
@@ -203,18 +205,16 @@ export function createForumApi(authApi: AuthApi) {
       return tag;
     },
     async activateTag(categoryId: number, id: number) {
-      const result = await client
-        .put(endpoint(`admin/category/${categoryId}/tag/${id}/active`))
-        .text();
+      await client.put(
+        endpoint(`admin/category/${categoryId}/tag/${id}/active`),
+      );
       clearTagCache(categoryId);
-      return result;
     },
     async deactivateTag(categoryId: number, id: number) {
-      const result = await client
-        .delete(endpoint(`admin/category/${categoryId}/tag/${id}/active`))
-        .text();
+      await client.delete(
+        endpoint(`admin/category/${categoryId}/tag/${id}/active`),
+      );
       clearTagCache(categoryId);
-      return result;
     },
     getPosts(params: PostListParams) {
       return client
@@ -233,24 +233,24 @@ export function createForumApi(authApi: AuthApi) {
         })
         .json<Page<PostSummary>>();
     },
-    setPostStatus(id: number, status: PostStatus) {
-      return client
-        .put(endpoint(`admin/post/${id}/status`), { json: { status } })
-        .text();
+    async setPostStatus(id: number, status: PostStatus) {
+      await client.put(endpoint(`admin/post/${id}/status`), {
+        json: { status },
+      });
     },
-    lockPost(id: number) {
-      return client.put(endpoint(`admin/post/${id}/lock`)).text();
+    async lockPost(id: number) {
+      await client.put(endpoint(`admin/post/${id}/lock`));
     },
-    unlockPost(id: number) {
-      return client.delete(endpoint(`admin/post/${id}/lock`)).text();
+    async unlockPost(id: number) {
+      await client.delete(endpoint(`admin/post/${id}/lock`));
     },
-    pinPost(id: number, pinOrder: number) {
-      return client
-        .put(endpoint(`admin/post/${id}/pin`), { json: { pinOrder } })
-        .text();
+    async pinPost(id: number, pinOrder: number) {
+      await client.put(endpoint(`admin/post/${id}/pin`), {
+        json: { pinOrder },
+      });
     },
-    unpinPost(id: number) {
-      return client.delete(endpoint(`admin/post/${id}/pin`)).text();
+    async unpinPost(id: number) {
+      await client.delete(endpoint(`admin/post/${id}/pin`));
     },
     getComments(params: CommentListParams) {
       return client
@@ -266,10 +266,10 @@ export function createForumApi(authApi: AuthApi) {
         })
         .json<Page<Comment>>();
     },
-    setCommentStatus(id: number, status: CommentStatusName) {
-      return client
-        .put(endpoint(`admin/comment/${id}/status`), { json: { status } })
-        .text();
+    async setCommentStatus(id: number, status: CommentStatusName) {
+      await client.put(endpoint(`admin/comment/${id}/status`), {
+        json: { status },
+      });
     },
   };
 }

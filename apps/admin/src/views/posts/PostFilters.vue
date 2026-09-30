@@ -5,7 +5,7 @@ import { computed } from 'vue';
 
 import FilterChoiceGroup from '@/components/FilterChoiceGroup.vue';
 import FilterRow from '@/components/FilterRow.vue';
-import type { CategoryListItem, PostSort } from '@/api';
+import type { CategoryListItem, PostSort, PostStatusFilter } from '@/api';
 import { categoryOrder, categoryTitle } from '@/category';
 
 const props = defineProps<{ categories: CategoryListItem[] }>();
@@ -13,7 +13,7 @@ const emit = defineEmits<{ search: [] }>();
 
 const query = defineModel<string>('query', { required: true });
 const category = defineModel<string>('category', { required: true });
-const status = defineModel<string>('status', { required: true });
+const status = defineModel<PostStatusFilter | ''>('status', { required: true });
 const tagId = defineModel<number | null>('tagId', { required: true });
 const authorName = defineModel<string>('authorName', { required: true });
 const sort = defineModel<PostSort>('sort', { required: true });
@@ -67,7 +67,7 @@ function changeCategory(value: string) {
 }
 
 function changeStatus(value: string) {
-  status.value = value;
+  status.value = value as PostStatusFilter | '';
   emit('search');
 }
 

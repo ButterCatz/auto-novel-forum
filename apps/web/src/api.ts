@@ -129,9 +129,9 @@ export function getPost(id: number, signal?: AbortSignal) {
   return client.get(`post/${id}/`, { signal }).json<Post>();
 }
 
-export function setPostFavorite(id: number, favorited: boolean) {
+export async function setPostFavorite(id: number, favorited: boolean) {
   const path = `post/${id}/favorite`;
-  return favorited ? client.put(path) : client.delete(path);
+  await (favorited ? client.put(path) : client.delete(path));
 }
 
 export function getCategories(signal?: AbortSignal) {
@@ -159,28 +159,28 @@ export function updatePost(
   return client.patch(`post/${id}/`, { json: input }).json<Post>();
 }
 
-export function deletePost(id: number) {
-  return client.delete(`post/${id}/`);
+export async function deletePost(id: number) {
+  await client.delete(`post/${id}/`);
 }
 
-export function setPostStatus(id: number, status: PostStatus) {
-  return client.put(`admin/post/${id}/status`, { json: { status } });
+export async function setPostStatus(id: number, status: PostStatus) {
+  await client.put(`admin/post/${id}/status`, { json: { status } });
 }
 
-export function lockPost(id: number) {
-  return client.put(`admin/post/${id}/lock`);
+export async function lockPost(id: number) {
+  await client.put(`admin/post/${id}/lock`);
 }
 
-export function unlockPost(id: number) {
-  return client.delete(`admin/post/${id}/lock`);
+export async function unlockPost(id: number) {
+  await client.delete(`admin/post/${id}/lock`);
 }
 
-export function pinPost(id: number, pinOrder: number) {
-  return client.put(`admin/post/${id}/pin`, { json: { pinOrder } });
+export async function pinPost(id: number, pinOrder: number) {
+  await client.put(`admin/post/${id}/pin`, { json: { pinOrder } });
 }
 
-export function unpinPost(id: number) {
-  return client.delete(`admin/post/${id}/pin`);
+export async function unpinPost(id: number) {
+  await client.delete(`admin/post/${id}/pin`);
 }
 
 export function getPostComments(
@@ -229,14 +229,17 @@ export function updatePostComment(id: number, content: string) {
     .json<PostComment>();
 }
 
-export function deletePostComment(id: number) {
-  return client.delete(`comment/${id}`);
+export async function deletePostComment(id: number) {
+  await client.delete(`comment/${id}`);
 }
 
-export function setPostCommentStatus(id: number, status: CommentStatusName) {
-  return client.put(`admin/comment/${id}/status`, { json: { status } });
+export async function setPostCommentStatus(
+  id: number,
+  status: CommentStatusName,
+) {
+  await client.put(`admin/comment/${id}/status`, { json: { status } });
 }
 
-export function deleteCommentsByAuthor(authorId: number) {
-  return client.delete(`admin/comment/author/${authorId}`);
+export async function deleteCommentsByAuthor(authorId: number) {
+  await client.delete(`admin/comment/author/${authorId}`);
 }

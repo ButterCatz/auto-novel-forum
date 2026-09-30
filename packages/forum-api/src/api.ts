@@ -100,11 +100,11 @@ export function createForumApi(options: ForumApiOptions) {
     updateComment(commentId: number, request: UpdateCommentRequest) {
       return client.patch(String(commentId), { json: request }).json<Comment>();
     },
-    deleteComment(commentId: number) {
-      return client.delete(String(commentId));
+    async deleteComment(commentId: number) {
+      await client.delete(String(commentId));
     },
-    setCommentStatus(commentId: number, status: CommentStatusName) {
-      return client.put(`${commentId}/status`, {
+    async setCommentStatus(commentId: number, status: CommentStatusName) {
+      await client.put(`${commentId}/status`, {
         json: { status },
       });
     },

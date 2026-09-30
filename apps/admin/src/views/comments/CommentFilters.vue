@@ -2,12 +2,15 @@
 import { NButton, NInput, NInputNumber } from 'naive-ui';
 import FilterRow from '@/components/FilterRow.vue';
 import FilterChoiceGroup from '@/components/FilterChoiceGroup.vue';
+import type { CommentStatusFilter } from '@/api';
 
 const emit = defineEmits<{ search: []; reset: [] }>();
 const query = defineModel<string>('query', { required: true });
 const authorName = defineModel<string>('authorName', { required: true });
 const postId = defineModel<number | null>('postId', { required: true });
-const status = defineModel<string>('status', { required: true });
+const status = defineModel<CommentStatusFilter | ''>('status', {
+  required: true,
+});
 const statusOptions = [
   { label: '全部', value: '' },
   { label: '正常发布', value: '0' },
@@ -15,7 +18,7 @@ const statusOptions = [
   { label: '删除', value: '2' },
 ];
 function changeStatus(value: string) {
-  status.value = value;
+  status.value = value as CommentStatusFilter | '';
   emit('search');
 }
 </script>

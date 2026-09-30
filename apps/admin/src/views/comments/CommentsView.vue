@@ -3,7 +3,12 @@ import { NAlert, NButton, NSpace, NText } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { useForumApi, type Comment, type CommentStatusName } from '@/api';
+import {
+  useForumApi,
+  type Comment,
+  type CommentStatusFilter,
+  type CommentStatusName,
+} from '@/api';
 
 import CommentFilters from './CommentFilters.vue';
 import CommentList from './CommentList.vue';
@@ -19,10 +24,10 @@ const postIdInput = ref<number | null>(null);
 const activePostId = ref<number>();
 const queryInput = ref('');
 const authorNameInput = ref('');
-const statusInput = ref('');
+const statusInput = ref<CommentStatusFilter | ''>('');
 const activeQuery = ref('');
 const activeAuthorName = ref('');
-const activeStatus = ref('');
+const activeStatus = ref<CommentStatusFilter | ''>('');
 const hasFilters = computed(() =>
   Boolean(
     activePostId.value ||
@@ -53,7 +58,7 @@ async function loadComments() {
       pageSize: PAGE_SIZE,
       query: activeQuery.value,
       authorName: activeAuthorName.value,
-      status: activeStatus.value,
+      status: activeStatus.value || undefined,
     });
     if (currentRequestId !== requestId) return;
     if (result.total > 0 && page.value > Math.ceil(result.total / PAGE_SIZE)) {
@@ -132,11 +137,9 @@ watch(
     postIdInput.value = activePostId.value ?? null;
     activeQuery.value = queryInput.value = text(query.q).trim();
     activeAuthorName.value = authorNameInput.value = text(query.author).trim();
-    activeStatus.value = statusInput.value = ['0', '1', '2'].includes(
-      text(query.status),
-    )
-      ? text(query.status)
-      : '';
+    const status = text(query.status);
+    activeStatus.value = statusInput.value =
+      status === '0' || status === '1' || status === '2' ? status : '';
     page.value = 1;
     void loadComments();
   },
