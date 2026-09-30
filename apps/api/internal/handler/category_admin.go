@@ -106,6 +106,13 @@ func (h *categoryHandler) createTag(w http.ResponseWriter, r *http.Request) erro
 }
 
 func (h *categoryHandler) updateTag(w http.ResponseWriter, r *http.Request) error {
+	categoryID, err := httpx.ParseParamPositiveInt(r, "cid")
+	if err != nil {
+		return err
+	}
+	if _, ok := forumcategory.FindByID(categoryID); !ok {
+		return httpx.NotFound("分类不存在")
+	}
 	id, err := httpx.ParseParamPositiveInt(r, "id")
 	if err != nil {
 		return err
@@ -116,6 +123,7 @@ func (h *categoryHandler) updateTag(w http.ResponseWriter, r *http.Request) erro
 	}
 
 	tag, err := h.tagRepo.Update(
+		categoryID,
 		id,
 		strings.TrimSpace(input.Name),
 		input.Color,
@@ -148,11 +156,18 @@ func (h *categoryHandler) deactivateTag(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *categoryHandler) setTagActive(w http.ResponseWriter, r *http.Request, active bool) error {
+	categoryID, err := httpx.ParseParamPositiveInt(r, "cid")
+	if err != nil {
+		return err
+	}
+	if _, ok := forumcategory.FindByID(categoryID); !ok {
+		return httpx.NotFound("分类不存在")
+	}
 	id, err := httpx.ParseParamPositiveInt(r, "id")
 	if err != nil {
 		return err
 	}
-	if err := h.tagRepo.SetActive(id, active); repository.IsNotFound(err) {
+	if err := h.tagRepo.SetActive(categoryID, id, active); repository.IsNotFound(err) {
 		return httpx.NotFound("标签不存在")
 	} else if err != nil {
 		return httpx.InternalError(err, "设置标签启用状态失败")

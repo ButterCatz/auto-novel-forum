@@ -28,24 +28,31 @@ func TestJetRepositories(t *testing.T) {
 	if !tag.IsActive {
 		t.Fatal("new tag is inactive")
 	}
-	if err := tagRepo.SetActive(tag.ID, false); err != nil {
+	otherCategory, _ := forumcategory.FindByID(forumcategory.AnnouncementsID)
+	if _, err := tagRepo.Update(otherCategory.ID, tag.ID, "跨分类更新", 2, 20); !repository.IsNotFound(err) {
+		t.Fatalf("cross-category update error = %v, want not found", err)
+	}
+	if err := tagRepo.SetActive(otherCategory.ID, tag.ID, false); !repository.IsNotFound(err) {
+		t.Fatalf("cross-category activation error = %v, want not found", err)
+	}
+	if err := tagRepo.SetActive(tag.CategoryID, tag.ID, false); err != nil {
 		t.Fatal(err)
 	}
-	tag, err = tagRepo.Update(tag.ID, "公告", 2, 20)
+	tag, err = tagRepo.Update(tag.CategoryID, tag.ID, "公告", 2, 20)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if tag.IsActive || tag.Color != 2 || tag.SortOrder != 20 {
 		t.Fatalf("unexpected updated tag: %#v", tag)
 	}
-	if err := tagRepo.SetActive(tag.ID, true); err != nil {
+	if err := tagRepo.SetActive(tag.CategoryID, tag.ID, true); err != nil {
 		t.Fatal(err)
 	}
 	inactiveTag, err := tagRepo.Create(category.ID, "停用标签", 3, 30, `{}`)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := tagRepo.SetActive(inactiveTag.ID, false); err != nil {
+	if err := tagRepo.SetActive(inactiveTag.CategoryID, inactiveTag.ID, false); err != nil {
 		t.Fatal(err)
 	}
 	activeTags, err := tagRepo.ListActive()

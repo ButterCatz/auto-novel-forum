@@ -18,8 +18,8 @@ type TagRepository interface {
 	ListForPost(postID int64) ([]Tag, error)
 	ListForPosts(postIDs []int64) (map[int64][]Tag, error)
 	Create(categoryID int64, name string, color int16, sortOrder int32, attr string) (*Tag, error)
-	Update(id int64, name string, color int16, sortOrder int32) (*Tag, error)
-	SetActive(id int64, active bool) error
+	Update(categoryID, id int64, name string, color int16, sortOrder int32) (*Tag, error)
+	SetActive(categoryID, id int64, active bool) error
 }
 
 type tagRepository struct{ db *sql.DB }
@@ -96,7 +96,7 @@ func (r *tagRepository) Create(categoryID int64, name string, color int16, sortO
 	return &dest, nil
 }
 
-func (r *tagRepository) Update(id int64, name string, color int16, sortOrder int32) (*Tag, error) {
+func (r *tagRepository) Update(categoryID, id int64, name string, color int16, sortOrder int32) (*Tag, error) {
 	stmt := table.Tag.UPDATE(
 		table.Tag.Name,
 		table.Tag.Color,
@@ -104,7 +104,7 @@ func (r *tagRepository) Update(id int64, name string, color int16, sortOrder int
 		table.Tag.UpdatedAt,
 	).
 		SET(String(name), Int16(color), Int32(sortOrder), TimestampzT(time.Now())).
-		WHERE(table.Tag.ID.EQ(Int64(id))).
+		WHERE(table.Tag.ID.EQ(Int64(id)).AND(table.Tag.CategoryID.EQ(Int64(categoryID)))).
 		RETURNING(table.Tag.AllColumns)
 	var dest Tag
 	if err := stmt.Query(r.db, &dest); err != nil {
@@ -113,10 +113,10 @@ func (r *tagRepository) Update(id int64, name string, color int16, sortOrder int
 	return &dest, nil
 }
 
-func (r *tagRepository) SetActive(id int64, active bool) error {
+func (r *tagRepository) SetActive(categoryID, id int64, active bool) error {
 	stmt := table.Tag.UPDATE(table.Tag.IsActive, table.Tag.UpdatedAt).
 		SET(Bool(active), TimestampzT(time.Now())).
-		WHERE(table.Tag.ID.EQ(Int64(id)))
+		WHERE(table.Tag.ID.EQ(Int64(id)).AND(table.Tag.CategoryID.EQ(Int64(categoryID))))
 	result, err := stmt.Exec(r.db)
 	if err != nil {
 		return err
