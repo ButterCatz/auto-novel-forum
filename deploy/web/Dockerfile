@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/admin/package.json ./apps/admin/package.json
 COPY apps/web/package.json ./apps/web/package.json
+COPY packages/forum-api/package.json ./packages/forum-api/package.json
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 FROM deps AS builder
@@ -14,6 +15,7 @@ ARG VITE_COMMIT_SHA
 ARG VITE_BUILD_TIME
 COPY apps/admin/. ./apps/admin/
 COPY apps/web/. ./apps/web/
+COPY packages/forum-api/. ./packages/forum-api/
 RUN VITE_COMMIT_SHA="${VITE_COMMIT_SHA}" \
     VITE_BUILD_TIME="${VITE_BUILD_TIME}" \
     pnpm run build
