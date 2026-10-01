@@ -69,9 +69,21 @@ function formatCommentId(comment: Comment) {
     <div class="comment-header">
       <div class="comment-author">
         <n-text strong>{{ comment.authorUsername }}</n-text>
-        <n-text depth="3" class="comment-meta">
-          {{ formatCommentId(comment) }} · {{ formatDate(comment.createdAt) }}
-        </n-text>
+        <div class="comment-meta">
+          <n-text depth="3">{{ formatCommentId(comment) }} ·</n-text>
+          <n-button
+            text
+            type="primary"
+            size="tiny"
+            tag="a"
+            :href="`/p/${comment.postId}`"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            帖子 #{{ comment.postId }}
+          </n-button>
+          <n-text depth="3">· {{ formatDate(comment.createdAt) }}</n-text>
+        </div>
       </div>
       <div class="comment-header-actions">
         <n-tag
@@ -99,17 +111,6 @@ function formatCommentId(comment: Comment) {
           </n-button>
         </n-dropdown>
       </div>
-    </div>
-    <div class="comment-context">
-      <n-button
-        text
-        tag="a"
-        :href="`/p/${comment.postId}`"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        查看帖子 #{{ comment.postId }}
-      </n-button>
     </div>
     <n-text class="comment-content">{{ comment.content }}</n-text>
   </div>
@@ -144,6 +145,10 @@ function formatCommentId(comment: Comment) {
 }
 
 .comment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 4px;
   font-size: 12px;
 }
 
@@ -151,12 +156,5 @@ function formatCommentId(comment: Comment) {
   line-height: 1.72;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-}
-
-.comment-context {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
 }
 </style>
