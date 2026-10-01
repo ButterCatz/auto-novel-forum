@@ -147,10 +147,7 @@ function changePage(nextPage: number) {
           @apply="applyFilters"
         />
         <XButton
-          v-if="
-            selectedCategory !== 'feedback' &&
-            categoryStore.canPublish(selectedCategory)
-          "
+          v-if="categoryStore.canPublish(selectedCategory)"
           class="order-1 self-end lg:order-2 lg:self-auto"
           :as="RouterLink"
           :to="{
