@@ -90,3 +90,61 @@ func TestCommentRepositoryDeleteAllByAuthor(t *testing.T) {
 		t.Fatalf("unexpected comment counts: first=%d second=%d", first.CommentsCount, second.CommentsCount)
 	}
 }
+
+func TestCommentRootReplyPreviews(t *testing.T) {
+	resetDatabase()
+	create := func(key string, rootID *int64) *repository.Comment {
+		t.Helper()
+		c, err := commentRepo.Create(repository.CreateCommentInput{
+			SubjectType: repository.CommentSubjectNovel, SubjectKey: key, RootID: rootID,
+			Content: "reply", AuthorID: 1, AuthorUsername: "reader", Attr: "{}",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return c
+	}
+	roots := []*repository.Comment{create("preview", nil), create("preview", nil), create("preview", nil)}
+	for _, root := range roots[:2] {
+		for i := 0; i < 23; i++ {
+			create("preview", &root.ID)
+		}
+	}
+	other := create("other", nil)
+	create("other", &other.ID)
+	total, threads, err := commentRepo.ListRoots(repository.CommentSubjectNovel, "preview", 3, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if total != 3 || len(threads) != 3 {
+		t.Fatalf("unexpected roots: %d %d", total, len(threads))
+	}
+	for i, thread := range threads {
+		if i == 2 {
+			if thread.ReplyCount != 0 || len(thread.Replies) != 0 {
+				t.Fatal("empty root has replies")
+			}
+			continue
+		}
+		count, replies, err := commentRepo.ListReplies(repository.CommentSubjectNovel, "preview", thread.ID, 20, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if thread.ReplyCount != count || count != 23 || len(thread.Replies) != 20 {
+			t.Fatalf("bad preview size/count: %#v", thread)
+		}
+		for j, reply := range thread.Replies {
+			if reply.ID != replies[j].ID || reply.RootID == nil || *reply.RootID != thread.ID {
+				t.Fatalf("preview order/group mismatch: %#v", reply)
+			}
+		}
+	}
+	_, page, err := commentRepo.ListRoots(repository.CommentSubjectNovel, "preview", 1, 1)
+	if err != nil || len(page) != 1 || page[0].ID != roots[1].ID || len(page[0].Replies) != 20 {
+		t.Fatalf("root pagination: %#v %v", page, err)
+	}
+	_, empty, err := commentRepo.ListRoots(repository.CommentSubjectNovel, "preview", 3, 3)
+	if err != nil || len(empty) != 0 {
+		t.Fatalf("empty page: %#v %v", empty, err)
+	}
+}

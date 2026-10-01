@@ -291,3 +291,39 @@ func TestCommentResponsesMaskModeratedContent(t *testing.T) {
 		}
 	}
 }
+
+func TestEmbeddedReplyVisibility(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "/", nil)
+	rootID := int64(1)
+	thread := repository.CommentThread{
+		Comment:    repository.Comment{ID: rootID, SubjectKey: repository.PostSubjectKey(42)},
+		ReplyCount: 3,
+	}
+	for _, status := range []int16{repository.StatusPublished, repository.StatusHidden, repository.StatusDeleted} {
+		thread.Replies = append(thread.Replies, repository.Comment{
+			ID: int64(status) + 2, SubjectKey: thread.SubjectKey, RootID: &rootID, Content: "body", Status: status,
+		})
+	}
+	post, err := newCommentThreadResponse(request, thread)
+	if err != nil {
+		t.Fatal(err)
+	}
+	external := newExternalCommentThreadResponse(request, thread)
+	if post.Replies == nil || external.Replies == nil || post.Replies.Total != 3 || external.Replies.Total != 3 {
+		t.Fatal("missing embedded reply page")
+	}
+	for i, expected := range []string{"body", "", ""} {
+		if post.Replies.Items[i].Content != expected || external.Replies.Items[i].Content != expected {
+			t.Fatalf("reply %d does not respect content visibility", i)
+		}
+	}
+	thread.Replies = nil
+	thread.ReplyCount = 0
+	empty, err := newCommentThreadResponse(request, thread)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if empty.Replies == nil || empty.Replies.Items == nil || len(empty.Replies.Items) != 0 || empty.Replies.Total != 0 {
+		t.Fatal("empty reply page must use an empty array")
+	}
+}

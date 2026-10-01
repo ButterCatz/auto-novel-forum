@@ -57,16 +57,17 @@ func validateComment(input commentInput, domains *domainfilter.Filter) error {
 }
 
 type commentResponse struct {
-	ID             int64     `json:"id"`
-	PostID         int64     `json:"postId"`
-	RootID         *int64    `json:"rootId"`
-	Content        string    `json:"content"`
-	AuthorID       int64     `json:"authorId"`
-	AuthorUsername string    `json:"authorUsername"`
-	Status         int16     `json:"status"`
-	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
-	ReplyCount     int64     `json:"replyCount"`
+	ID             int64                  `json:"id"`
+	PostID         int64                  `json:"postId"`
+	RootID         *int64                 `json:"rootId"`
+	Content        string                 `json:"content"`
+	AuthorID       int64                  `json:"authorId"`
+	AuthorUsername string                 `json:"authorUsername"`
+	Status         int16                  `json:"status"`
+	CreatedAt      time.Time              `json:"createdAt"`
+	UpdatedAt      time.Time              `json:"updatedAt"`
+	ReplyCount     int64                  `json:"replyCount"`
+	Replies        *page[commentResponse] `json:"replies,omitempty"`
 }
 
 func newCommentResponse(r *http.Request, value repository.Comment) (commentResponse, error) {
@@ -89,8 +90,19 @@ func newCommentResponse(r *http.Request, value repository.Comment) (commentRespo
 
 func newCommentThreadResponse(r *http.Request, value repository.CommentThread) (commentResponse, error) {
 	response, err := newCommentResponse(r, value.Comment)
+	if err != nil {
+		return response, err
+	}
 	response.ReplyCount = value.ReplyCount
-	return response, err
+	items := make([]commentResponse, len(value.Replies))
+	for i, reply := range value.Replies {
+		items[i], err = newCommentResponse(r, reply)
+		if err != nil {
+			return response, err
+		}
+	}
+	response.Replies = &page[commentResponse]{Total: value.ReplyCount, Items: items}
+	return response, nil
 }
 
 func publicCommentContent(r *http.Request, value repository.Comment) string {

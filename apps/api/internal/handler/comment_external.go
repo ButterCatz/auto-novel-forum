@@ -31,21 +31,27 @@ func (h *externalCommentHandler) RegisterRoutes(router chi.Router) {
 }
 
 type externalCommentResponse struct {
-	ID             int64     `json:"id"`
-	SubjectKey     string    `json:"subjectKey"`
-	RootID         *int64    `json:"rootId"`
-	Content        string    `json:"content"`
-	AuthorID       int64     `json:"authorId"`
-	AuthorUsername string    `json:"authorUsername"`
-	Status         int16     `json:"status"`
-	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
-	ReplyCount     int64     `json:"replyCount"`
+	ID             int64                          `json:"id"`
+	SubjectKey     string                         `json:"subjectKey"`
+	RootID         *int64                         `json:"rootId"`
+	Content        string                         `json:"content"`
+	AuthorID       int64                          `json:"authorId"`
+	AuthorUsername string                         `json:"authorUsername"`
+	Status         int16                          `json:"status"`
+	CreatedAt      time.Time                      `json:"createdAt"`
+	UpdatedAt      time.Time                      `json:"updatedAt"`
+	ReplyCount     int64                          `json:"replyCount"`
+	Replies        *page[externalCommentResponse] `json:"replies,omitempty"`
 }
 
 func newExternalCommentThreadResponse(r *http.Request, value repository.CommentThread) externalCommentResponse {
 	response := newExternalCommentResponse(r, value.Comment)
 	response.ReplyCount = value.ReplyCount
+	items := make([]externalCommentResponse, len(value.Replies))
+	for i, reply := range value.Replies {
+		items[i] = newExternalCommentResponse(r, reply)
+	}
+	response.Replies = &page[externalCommentResponse]{Total: value.ReplyCount, Items: items}
 	return response
 }
 

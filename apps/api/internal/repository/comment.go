@@ -16,7 +16,10 @@ type Comment = model.Comment
 type CommentThread struct {
 	Comment
 	ReplyCount int64
+	Replies    []Comment
 }
+
+const CommentReplyPageSize int64 = 20
 
 const (
 	CommentSubjectPost  int16 = 0
@@ -105,9 +108,31 @@ func (r *commentRepository) ListRoots(subjectType int16, subjectKey string, limi
 			countsByRoot[*row.RootID] = row.Count
 		}
 	}
+	// Fetch the first page for all roots in this page in one query.
+	repliesByRoot := make(map[int64][]Comment, len(rootIDs))
+	if len(rootIDs) > 0 {
+		ranked := SELECT(table.Comment.AllColumns,
+			ROW_NUMBER().OVER(PARTITION_BY(table.Comment.RootID).
+				ORDER_BY(table.Comment.CreatedAt.ASC(), table.Comment.ID.ASC())).AS("reply_rank"),
+		).FROM(table.Comment).
+			WHERE(table.Comment.SubjectType.EQ(Int16(subjectType)).
+				AND(table.Comment.SubjectKey.EQ(String(subjectKey))).
+				AND(table.Comment.RootID.IN(integerExpressions(rootIDs)...))).AsTable("ranked")
+		var replies []Comment
+		err := SELECT(ranked.AllColumns()).FROM(ranked).
+			WHERE(IntegerColumn("reply_rank").From(ranked).LT_EQ(Int64(CommentReplyPageSize))).
+			ORDER_BY(table.Comment.CreatedAt.From(ranked).ASC(), table.Comment.ID.From(ranked).ASC()).
+			Query(r.db, &replies)
+		if err != nil {
+			return 0, nil, err
+		}
+		for _, reply := range replies {
+			repliesByRoot[*reply.RootID] = append(repliesByRoot[*reply.RootID], reply)
+		}
+	}
 	threads := make([]CommentThread, len(dest))
 	for i, comment := range dest {
-		threads[i] = CommentThread{Comment: comment, ReplyCount: countsByRoot[comment.ID]}
+		threads[i] = CommentThread{Comment: comment, ReplyCount: countsByRoot[comment.ID], Replies: repliesByRoot[comment.ID]}
 	}
 	return count.Count, threads, nil
 }
