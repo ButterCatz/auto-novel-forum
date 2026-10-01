@@ -85,7 +85,10 @@ func (r *commentRepository) ListRoots(subjectType int16, subjectKey string, limi
 	}
 	var replyCounts []replyCountRow
 	if len(rootIDs) > 0 {
-		err := SELECT(table.Comment.RootID, COUNT(STAR)).
+		err := SELECT(
+			table.Comment.RootID.AS("replyCountRow.RootID"),
+			COUNT(STAR).AS("replyCountRow.Count"),
+		).
 			FROM(table.Comment).
 			WHERE(table.Comment.SubjectType.EQ(Int16(subjectType)).
 				AND(table.Comment.SubjectKey.EQ(String(subjectKey))).
