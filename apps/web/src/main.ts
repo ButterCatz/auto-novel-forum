@@ -1,16 +1,31 @@
-import { createApp } from 'vue';
+import { createWebKit } from '@novelia/web-kit';
 import { PiniaColada } from '@pinia/colada';
+import { createApp } from 'vue';
 
 import App from './App.vue';
+import { initializeApi } from './api';
 import router from './router';
-import './styles.css';
-import { useCategoryStore } from './stores/category';
 import { pinia } from './stores';
-import { webKit } from './web-kit';
+import { useCategoryStore } from './stores/category';
+import './styles.css';
 
-const app = createApp(App);
+const webKit = createWebKit({
+  auth: {
+    app: 'f',
+    url: __AUTH_URL__,
+    storageKey: 'f-session',
+  },
+  brand: '论坛',
+  repository: {
+    url: 'https://github.com/auto-novel/forum',
+    buildTime: __BUILD_TIME__,
+    commitSha: __COMMIT_SHA__,
+  },
+  themeStorageKey: 'forum:theme',
+});
+initializeApi(webKit.api, webKit.profile);
 
-app
+createApp(App)
   .use(webKit)
   .use(pinia)
   .use(PiniaColada, {
@@ -18,6 +33,8 @@ app
       staleTime: 60_000,
       gcTime: 5 * 60_000,
     },
-  });
-app.use(router).mount('#app');
+  })
+  .use(router)
+  .mount('#app');
+
 void useCategoryStore().initialize();
