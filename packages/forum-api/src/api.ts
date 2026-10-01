@@ -16,6 +16,8 @@ export interface Comment {
   createdAt: string;
   updatedAt: string;
   replyCount: number;
+  /** First 20 replies, included in root comment lists. */
+  replies?: CommentPage;
 }
 
 export interface CommentPage {

@@ -15,6 +15,7 @@ import {
   type PostComment,
 } from '@/api';
 
+export const COMMENT_REPLY_PAGE_SIZE = 20;
 const CACHE_MAX_PAGES = 30;
 // Admin responses include hidden comment bodies, so never share them across viewers.
 const viewerKey = computed(
@@ -238,11 +239,29 @@ export function useCommentPageQuery(
     gcTime: 5 * 60_000,
     query: async ({ signal, entry }) => {
       try {
-        return await getPostComments(
-          toValue(postId),
+        const requestedPostId = toValue(postId);
+        const viewer = viewerKey.value;
+        const result = await getPostComments(
+          requestedPostId,
           { page: toValue(page), pageSize },
           signal,
         );
+        // Seed before mounting threads so their first page needs no extra request.
+        // Keep one cache copy of replies, shared by edits and moderation updates.
+        const items = result.items.map(({ replies, ...comment }) => {
+          if (replies && !signal.aborted && viewer === viewerKey.value) {
+            const key = repliesKey(
+              requestedPostId,
+              comment.id,
+              1,
+              COMMENT_REPLY_PAGE_SIZE,
+            );
+            cache.cancelQueries({ key, exact: true });
+            cache.setQueryData<Page<PostComment>>(key, replies);
+          }
+          return comment;
+        });
+        return { ...result, items };
       } catch (error) {
         const failure =
           error instanceof Error ? error : new Error('无法加载评论');

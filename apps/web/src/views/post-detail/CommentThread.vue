@@ -2,13 +2,16 @@
 import { computed, nextTick, ref } from 'vue';
 
 import type { PostComment } from '@/api';
-import { useCommentReplyPageQuery } from '@/stores/comment';
+import {
+  COMMENT_REPLY_PAGE_SIZE,
+  useCommentReplyPageQuery,
+} from '@/stores/comment';
 import XButton from '@/ui/XButton.vue';
 import XPagination from '@/ui/XPagination.vue';
 
 import CommentListItem from './CommentListItem.vue';
 
-const REPLY_PAGE_SIZE = 20;
+const REPLY_PAGE_SIZE = COMMENT_REPLY_PAGE_SIZE;
 
 const props = defineProps<{
   comment: PostComment;

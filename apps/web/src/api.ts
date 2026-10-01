@@ -67,6 +67,7 @@ export interface PostComment {
   createdAt: string;
   updatedAt: string;
   replyCount: number;
+  replies?: Page<PostComment>;
 }
 
 export function getPosts(
