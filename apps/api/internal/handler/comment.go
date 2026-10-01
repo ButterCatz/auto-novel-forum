@@ -66,7 +66,7 @@ type commentResponse struct {
 	Status         int16     `json:"status"`
 	CreatedAt      time.Time `json:"createdAt"`
 	UpdatedAt      time.Time `json:"updatedAt"`
-	ReplyCount     int64     `json:"replyCount,omitempty"`
+	ReplyCount     int64     `json:"replyCount"`
 }
 
 func newCommentResponse(r *http.Request, value repository.Comment) (commentResponse, error) {
