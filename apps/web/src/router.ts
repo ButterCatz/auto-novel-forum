@@ -9,7 +9,7 @@ import PostDetailView from '@/views/post-detail/PostDetailView.vue';
 import PostCreateView from '@/views/post-editor/PostCreateView.vue';
 import PostEditView from '@/views/post-editor/PostEditView.vue';
 import PostListView from '@/views/post-list/PostListView.vue';
-import MyStrikeListView from '@/views/strike/MyStrikeListView.vue';
+import { MyStrikeListView } from '@novelia/web-kit';
 
 function defaultCategorySlug() {
   return useCategoryStore().defaultCategory.slug;
