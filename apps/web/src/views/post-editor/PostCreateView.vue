@@ -8,6 +8,7 @@ import { notifyError, notifySuccess } from '@/notifications';
 import { useCategoryStore } from '@/stores/category';
 import { useDraftStore } from '@/stores/draft';
 import { getApiErrorMessage } from '@/utils/apiError';
+import PostPublishingNotice from './PostPublishingNotice.vue';
 
 import PostForm from './PostForm.vue';
 
@@ -125,7 +126,11 @@ async function submitPost() {
           content-placeholder="详细说明你想分享或讨论的内容…"
           @category-change="changeCategory"
           @submit="submitPost"
-        />
+        >
+          <template #notice>
+            <PostPublishingNotice />
+          </template>
+        </PostForm>
       </section>
     </div>
   </div>

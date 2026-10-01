@@ -2,7 +2,7 @@
 import { computed, ref, useId, watch } from 'vue';
 
 import { authUser, type PostComment } from '@/api';
-import CommunityRulesReminder from '@/components/CommunityRulesReminder.vue';
+import CommentRulesNotice from './CommentRulesNotice.vue';
 import MarkdownEditor from '@/components/markdown/MarkdownEditor.vue';
 import MarkdownHelpDialog from '@/components/markdown/MarkdownHelpDialog.vue';
 import { useCommentValidation } from '@/composables/useCommentValidation';
@@ -97,7 +97,7 @@ async function submitComment() {
     </div>
 
     <form v-else @submit.prevent="submitComment">
-      <CommunityRulesReminder class="mb-3" />
+      <CommentRulesNotice class="mb-3" />
       <MarkdownEditor
         v-model="content"
         mode="comment"

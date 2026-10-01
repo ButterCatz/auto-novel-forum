@@ -4,7 +4,6 @@ import { computed, useId } from 'vue';
 import type { PostTag } from '@/api';
 import XButton from '@/ui/XButton.vue';
 import XSelect from '@/ui/XSelect.vue';
-import CommunityRulesReminder from '@/components/CommunityRulesReminder.vue';
 import MarkdownEditor from '@/components/markdown/MarkdownEditor.vue';
 import MarkdownHelpDialog from '@/components/markdown/MarkdownHelpDialog.vue';
 
@@ -72,7 +71,7 @@ function submit() {
 
 <template>
   <form class="space-y-5" @submit.prevent="submit">
-    <CommunityRulesReminder />
+    <slot name="notice" />
 
     <div>
       <label for="post-title" class="mb-2 block text-sm font-semibold text-ink">
