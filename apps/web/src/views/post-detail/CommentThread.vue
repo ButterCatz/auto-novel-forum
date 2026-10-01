@@ -25,7 +25,6 @@ const emit = defineEmits<{
   authorCommentsDeleted: [];
 }>();
 
-const expanded = ref(false);
 const replyPage = ref(1);
 const { replies, total, loading, error, refresh, retry } =
   useCommentReplyPageQuery(
@@ -33,15 +32,11 @@ const { replies, total, loading, error, refresh, retry } =
     () => props.comment.id,
     replyPage,
     REPLY_PAGE_SIZE,
-    expanded,
+    () => props.comment.replyCount > 0,
   );
 const totalPages = computed(() =>
   Math.max(1, Math.ceil(total.value / REPLY_PAGE_SIZE)),
 );
-
-function toggleReplies() {
-  expanded.value = !expanded.value;
-}
 
 async function handleCreated(comment: PostComment) {
   const lastPage = Math.max(
@@ -50,7 +45,6 @@ async function handleCreated(comment: PostComment) {
   );
   emit('created', comment);
   if (comment.rootId !== props.comment.id) return;
-  expanded.value = true;
   replyPage.value = lastPage;
   await nextTick();
   await refresh();
@@ -71,18 +65,7 @@ async function handleCreated(comment: PostComment) {
       @author-comments-deleted="emit('authorCommentsDeleted')"
     />
 
-    <div v-if="comment.replyCount > 0" class="pb-3 pl-6 sm:pl-10">
-      <XButton
-        variant="plain"
-        size="none"
-        class="text-xs"
-        @click="toggleReplies"
-      >
-        {{ expanded ? '收起回复' : `查看 ${comment.replyCount} 条回复` }}
-      </XButton>
-    </div>
-
-    <div v-if="expanded" class="border-t border-divider/60">
+    <div v-if="comment.replyCount > 0" class="border-t border-divider/60">
       <p v-if="loading" class="py-4 pl-10 text-sm text-muted">正在加载回复…</p>
       <div v-else-if="error" class="flex items-center gap-3 py-4 pl-10 text-sm">
         <span class="text-red-600">{{ error }}</span>
