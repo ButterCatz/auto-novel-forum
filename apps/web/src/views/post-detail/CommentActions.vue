@@ -7,7 +7,7 @@ import { XActionMenu } from '@novelia/web-kit';
 import { XActionMenuItem } from '@novelia/web-kit';
 import { XConfirmDialog } from '@novelia/web-kit';
 import UserModerationDialog from '@/components/UserModerationDialog.vue';
-import { notifyError, notifySuccess } from '@/notifications';
+import { Notify } from '@novelia/web-kit';
 import { useCommentStore } from '@/stores/comment';
 import { getApiErrorMessage } from '@/utils/apiError';
 
@@ -78,10 +78,10 @@ async function removeComment() {
   submitting.value = true;
   try {
     await commentStore.deleteComment(props.comment.id, isAdmin.value);
-    notifySuccess('评论已删除');
+    Notify.success('评论已删除');
     emit('statusChanged', 2);
   } catch (reason) {
-    notifyError(await getApiErrorMessage(reason, '删除评论失败'));
+    Notify.error(await getApiErrorMessage(reason, '删除评论失败'));
   } finally {
     submitting.value = false;
   }
@@ -91,10 +91,10 @@ async function hideComment() {
   submitting.value = true;
   try {
     await commentStore.hideComment(props.comment.id);
-    notifySuccess('评论已隐藏');
+    Notify.success('评论已隐藏');
     emit('statusChanged', 1);
   } catch (reason) {
-    notifyError(await getApiErrorMessage(reason, '隐藏评论失败'));
+    Notify.error(await getApiErrorMessage(reason, '隐藏评论失败'));
   } finally {
     submitting.value = false;
   }

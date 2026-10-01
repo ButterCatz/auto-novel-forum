@@ -18,7 +18,7 @@ import { XActionMenu } from '@novelia/web-kit';
 import { XActionMenuItem } from '@novelia/web-kit';
 import { XConfirmDialog } from '@novelia/web-kit';
 import UserModerationDialog from '@/components/UserModerationDialog.vue';
-import { notifyError, notifySuccess } from '@/notifications';
+import { Notify } from '@novelia/web-kit';
 import { getApiErrorMessage } from '@/utils/apiError';
 
 const props = defineProps<{ post: Post }>();
@@ -73,9 +73,9 @@ async function toggleFavorite() {
     await setPostFavorite(props.post.id, nextValue);
     favorited.value = nextValue;
     emit('updated', { ...props.post, favorited: nextValue });
-    notifySuccess(nextValue ? '帖子已收藏' : '已取消收藏');
+    Notify.success(nextValue ? '帖子已收藏' : '已取消收藏');
   } catch (reason) {
-    notifyError(await getApiErrorMessage(reason, '更新收藏失败'));
+    Notify.error(await getApiErrorMessage(reason, '更新收藏失败'));
   } finally {
     favoriteLoading.value = false;
   }
@@ -89,10 +89,10 @@ async function removePost() {
   actionLoading.value = true;
   try {
     await deletePost(props.post.id);
-    notifySuccess('帖子已删除');
+    Notify.success('帖子已删除');
     emit('deleted');
   } catch (reason) {
-    notifyError(await getApiErrorMessage(reason, '删除帖子失败'));
+    Notify.error(await getApiErrorMessage(reason, '删除帖子失败'));
   } finally {
     actionLoading.value = false;
   }
@@ -107,11 +107,11 @@ async function updateModeration(
   actionLoading.value = true;
   try {
     await request;
-    notifySuccess(successMessage);
+    Notify.success(successMessage);
     if (nextPost.status !== 0) emit('deleted');
     else emit('updated', nextPost);
   } catch (reason) {
-    notifyError(await getApiErrorMessage(reason, failureMessage));
+    Notify.error(await getApiErrorMessage(reason, failureMessage));
   } finally {
     actionLoading.value = false;
   }

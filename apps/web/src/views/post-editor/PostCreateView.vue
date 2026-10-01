@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { authUser, createPost } from '@/api';
 import { usePostStore } from '@/stores/post';
-import { notifyError, notifySuccess } from '@/notifications';
+import { Notify } from '@novelia/web-kit';
 import { useCategoryStore } from '@/stores/category';
 import { useDraftStore } from '@/stores/draft';
 import { getApiErrorMessage } from '@/utils/apiError';
@@ -90,10 +90,10 @@ async function submitPost() {
     title.value = '';
     content.value = '';
     selectedTagIds.value = [];
-    notifySuccess('帖子已发布');
+    Notify.success('帖子已发布');
     await router.replace({ name: 'post-detail', params: { id: post.id } });
   } catch (error) {
-    notifyError(await getApiErrorMessage(error, '帖子发布失败'));
+    Notify.error(await getApiErrorMessage(error, '帖子发布失败'));
   } finally {
     submitting.value = false;
   }

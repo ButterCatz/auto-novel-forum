@@ -6,7 +6,7 @@ import { authUser, updatePost, type Post } from '@/api';
 import { XButton } from '@novelia/web-kit';
 import { XAsyncContent } from '@novelia/web-kit';
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard';
-import { notifyError, notifySuccess } from '@/notifications';
+import { Notify } from '@novelia/web-kit';
 import { useCategoryStore } from '@/stores/category';
 import { usePostQuery, usePostStore } from '@/stores/post';
 import { getApiErrorMessage } from '@/utils/apiError';
@@ -109,13 +109,13 @@ async function save() {
     });
     applyPost(updatedPost);
     postStore.setPost(updatedPost);
-    notifySuccess('帖子修改已保存');
+    Notify.success('帖子修改已保存');
     await router.replace({
       name: 'post-detail',
       params: { id: updatedPost.id },
     });
   } catch (reason) {
-    notifyError(await getApiErrorMessage(reason, '更新帖子失败'));
+    Notify.error(await getApiErrorMessage(reason, '更新帖子失败'));
   } finally {
     submitting.value = false;
   }

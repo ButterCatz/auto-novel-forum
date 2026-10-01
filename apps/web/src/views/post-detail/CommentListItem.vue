@@ -8,7 +8,7 @@ import MarkdownEditor from '@/components/markdown/MarkdownEditor.vue';
 import MarkdownHelpDialog from '@/components/markdown/MarkdownHelpDialog.vue';
 import { useCommentValidation } from '@/composables/useCommentValidation';
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard';
-import { notifyError, notifySuccess } from '@/notifications';
+import { Notify } from '@novelia/web-kit';
 import { useCommentStore } from '@/stores/comment';
 import { getApiErrorMessage } from '@/utils/apiError';
 
@@ -82,9 +82,9 @@ async function saveEdit() {
   try {
     await commentStore.updateComment(props.comment.id, value);
     editing.value = false;
-    notifySuccess('评论修改已保存');
+    Notify.success('评论修改已保存');
   } catch (reason) {
-    notifyError(await getApiErrorMessage(reason, '更新评论失败'));
+    Notify.error(await getApiErrorMessage(reason, '更新评论失败'));
   } finally {
     submitting.value = false;
   }

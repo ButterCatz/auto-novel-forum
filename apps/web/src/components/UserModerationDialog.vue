@@ -12,7 +12,7 @@ import {
 
 import { authApi, deleteCommentsByAuthor } from '@/api';
 import { XButton } from '@novelia/web-kit';
-import { notifyError, notifySuccess } from '@/notifications';
+import { Notify } from '@novelia/web-kit';
 import { useCommentStore } from '@/stores/comment';
 import { getApiErrorMessage } from '@/utils/apiError';
 
@@ -77,7 +77,7 @@ async function submit() {
         evidence: props.evidence,
         point: point.value,
       });
-      notifySuccess(`已处罚 @${props.username}`);
+      Notify.success(`已处罚 @${props.username}`);
     } else {
       await authApi.banUser({ username: props.username, reason: value });
       if (removeComments.value) {
@@ -85,19 +85,19 @@ async function submit() {
           await deleteCommentsByAuthor(props.userId);
           commentStore.registerDeletedCommentsByAuthor(props.userId);
           emit('commentsDeleted');
-          notifySuccess(`已封禁 @${props.username} 并删除其全部评论`);
+          Notify.success(`已封禁 @${props.username} 并删除其全部评论`);
         } catch (error) {
           const message = await getApiErrorMessage(error, '未知错误');
-          notifySuccess(`已封禁 @${props.username}`);
-          notifyError(`删除该用户的评论失败：${message}`);
+          Notify.success(`已封禁 @${props.username}`);
+          Notify.error(`删除该用户的评论失败：${message}`);
         }
       } else {
-        notifySuccess(`已封禁 @${props.username}`);
+        Notify.success(`已封禁 @${props.username}`);
       }
     }
     emit('update:open', false);
   } catch (error) {
-    notifyError(
+    Notify.error(
       await getApiErrorMessage(
         error,
         isStrike.value ? '处罚用户失败' : '封禁用户失败',

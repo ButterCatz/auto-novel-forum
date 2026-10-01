@@ -6,7 +6,7 @@ import CommentRulesNotice from './CommentRulesNotice.vue';
 import MarkdownEditor from '@/components/markdown/MarkdownEditor.vue';
 import MarkdownHelpDialog from '@/components/markdown/MarkdownHelpDialog.vue';
 import { useCommentValidation } from '@/composables/useCommentValidation';
-import { notifyError, notifySuccess } from '@/notifications';
+import { Notify } from '@novelia/web-kit';
 import { useCommentStore } from '@/stores/comment';
 import { useDraftStore } from '@/stores/draft';
 import { XButton } from '@novelia/web-kit';
@@ -70,10 +70,10 @@ async function submitComment() {
     });
     content.value = '';
     draftStore.clearCommentDraft(draftKey.value);
-    notifySuccess('评论已发表');
+    Notify.success('评论已发表');
     emit('created', comment);
   } catch (error) {
-    notifyError(await getApiErrorMessage(error, '评论发布失败'));
+    Notify.error(await getApiErrorMessage(error, '评论发布失败'));
   } finally {
     submitting.value = false;
   }

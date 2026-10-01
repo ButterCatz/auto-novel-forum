@@ -11,7 +11,6 @@ import { WebKitLayout, type WebKitMenuOption } from '@novelia/web-kit';
 import { computed, type Component } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 
-import GlobalNotifications from '@/components/GlobalNotifications.vue';
 import { useCategoryStore } from '@/stores/category';
 import { usePostStore } from '@/stores/post';
 
@@ -80,5 +79,4 @@ const selectedNavigationKey = computed(() => {
   >
     <RouterView />
   </WebKitLayout>
-  <GlobalNotifications />
 </template>
