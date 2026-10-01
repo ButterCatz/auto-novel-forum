@@ -7,6 +7,9 @@ export const webKit = createWebKit({
     storageKey: 'f-session',
   },
   brand: '论坛',
+  forum: {
+    url: '/',
+  },
   repository: {
     url: 'https://github.com/auto-novel/forum',
     buildTime: __BUILD_TIME__,

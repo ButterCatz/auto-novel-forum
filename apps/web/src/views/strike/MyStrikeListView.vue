@@ -5,8 +5,8 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { authApi, authUser } from '@/api';
-import XAsyncContent from '@/ui/XAsyncContent.vue';
-import XPagination from '@/ui/XPagination.vue';
+import { XAsyncContent } from '@novelia/web-kit';
+import { XPagination } from '@novelia/web-kit';
 import { getApiErrorMessage } from '@/utils/apiError';
 
 const PAGE_SIZE = 20;

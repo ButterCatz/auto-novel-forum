@@ -4,7 +4,6 @@ import {
   ExploreOutlined,
   FactCheckOutlined,
   ForumOutlined,
-  GavelOutlined,
   MenuBookOutlined,
   StarBorderOutlined,
 } from '@vicons/material';
@@ -53,12 +52,6 @@ const accountOptions: WebKitMenuOption[] = [
     label: '我的收藏',
     icon: StarBorderOutlined,
     to: { name: 'favorites' },
-  },
-  {
-    key: 'my-strikes',
-    label: '处罚记录',
-    icon: GavelOutlined,
-    to: { name: 'my-strikes' },
   },
 ];
 

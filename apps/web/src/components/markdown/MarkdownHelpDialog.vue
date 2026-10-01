@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from 'reka-ui';
 
-import XButton from '@/ui/XButton.vue';
+import { XButton } from '@novelia/web-kit';
 
 import type { MarkdownMode } from '@novelia/forum-api';
 

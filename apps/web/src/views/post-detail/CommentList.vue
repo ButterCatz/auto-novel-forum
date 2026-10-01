@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ChatBubbleOutlineOutlined } from '@vicons/material';
 
-import XButton from '@/ui/XButton.vue';
+import { XButton } from '@novelia/web-kit';
 
 import type { PostComment } from '@/api';
-import XAsyncContent from '@/ui/XAsyncContent.vue';
-import XPagination from '@/ui/XPagination.vue';
+import { XAsyncContent } from '@novelia/web-kit';
+import { XPagination } from '@novelia/web-kit';
 
 import CommentThread from './CommentThread.vue';
 

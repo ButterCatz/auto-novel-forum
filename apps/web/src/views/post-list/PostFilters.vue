@@ -3,7 +3,7 @@ import { SearchOutlined } from '@vicons/material';
 import { computed, ref, watch } from 'vue';
 
 import { type PostSort } from '@/api';
-import XSelect from '@/ui/XSelect.vue';
+import { XSelect } from '@novelia/web-kit';
 import { useCategoryStore } from '@/stores/category';
 
 const props = defineProps<{

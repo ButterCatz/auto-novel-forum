@@ -9,7 +9,7 @@ import { useCommentValidation } from '@/composables/useCommentValidation';
 import { notifyError, notifySuccess } from '@/notifications';
 import { useCommentStore } from '@/stores/comment';
 import { useDraftStore } from '@/stores/draft';
-import XButton from '@/ui/XButton.vue';
+import { XButton } from '@novelia/web-kit';
 import { getApiErrorMessage } from '@/utils/apiError';
 
 const props = defineProps<{

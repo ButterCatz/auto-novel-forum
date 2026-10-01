@@ -2,8 +2,8 @@
 import { computed, useId } from 'vue';
 
 import type { PostTag } from '@/api';
-import XButton from '@/ui/XButton.vue';
-import XSelect from '@/ui/XSelect.vue';
+import { XButton } from '@novelia/web-kit';
+import { XSelect } from '@novelia/web-kit';
 import MarkdownEditor from '@/components/markdown/MarkdownEditor.vue';
 import MarkdownHelpDialog from '@/components/markdown/MarkdownHelpDialog.vue';
 

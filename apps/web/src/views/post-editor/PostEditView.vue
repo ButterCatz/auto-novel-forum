@@ -3,8 +3,8 @@ import { computed, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 
 import { authUser, updatePost, type Post } from '@/api';
-import XButton from '@/ui/XButton.vue';
-import XAsyncContent from '@/ui/XAsyncContent.vue';
+import { XButton } from '@novelia/web-kit';
+import { XAsyncContent } from '@novelia/web-kit';
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard';
 import { notifyError, notifySuccess } from '@/notifications';
 import { useCategoryStore } from '@/stores/category';

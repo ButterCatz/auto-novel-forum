@@ -2,7 +2,7 @@
 import { computed, ref, useId, watch } from 'vue';
 
 import { authUser, type PostComment } from '@/api';
-import XButton from '@/ui/XButton.vue';
+import { XButton } from '@novelia/web-kit';
 import MarkdownContent from '@/components/markdown/MarkdownContent.vue';
 import MarkdownEditor from '@/components/markdown/MarkdownEditor.vue';
 import MarkdownHelpDialog from '@/components/markdown/MarkdownHelpDialog.vue';

@@ -4,8 +4,8 @@ import { computed, nextTick, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { type Post, type PostComment } from '@/api';
-import XButton from '@/ui/XButton.vue';
-import XAsyncContent from '@/ui/XAsyncContent.vue';
+import { XButton } from '@novelia/web-kit';
+import { XAsyncContent } from '@novelia/web-kit';
 import PostTagList from '@/components/PostTagList.vue';
 import { useCategoryStore } from '@/stores/category';
 import { useCommentPageQuery, useCommentStore } from '@/stores/comment';

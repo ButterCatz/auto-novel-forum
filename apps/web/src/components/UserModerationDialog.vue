@@ -11,7 +11,7 @@ import {
 } from 'reka-ui';
 
 import { authApi, deleteCommentsByAuthor } from '@/api';
-import XButton from '@/ui/XButton.vue';
+import { XButton } from '@novelia/web-kit';
 import { notifyError, notifySuccess } from '@/notifications';
 import { useCommentStore } from '@/stores/comment';
 import { getApiErrorMessage } from '@/utils/apiError';

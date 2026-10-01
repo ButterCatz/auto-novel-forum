@@ -2,10 +2,10 @@
 import { computed, onBeforeUnmount, ref } from 'vue';
 
 import { authUser, type PostComment } from '@/api';
-import XButton from '@/ui/XButton.vue';
-import XActionMenu from '@/ui/XActionMenu.vue';
-import XActionMenuItem from '@/ui/XActionMenuItem.vue';
-import XConfirmDialog from '@/ui/XConfirmDialog.vue';
+import { XButton } from '@novelia/web-kit';
+import { XActionMenu } from '@novelia/web-kit';
+import { XActionMenuItem } from '@novelia/web-kit';
+import { XConfirmDialog } from '@novelia/web-kit';
 import UserModerationDialog from '@/components/UserModerationDialog.vue';
 import { notifyError, notifySuccess } from '@/notifications';
 import { useCommentStore } from '@/stores/comment';

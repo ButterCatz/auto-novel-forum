@@ -2,8 +2,8 @@
 import { nextTick, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import type { PostSummary } from '@/api';
-import XAsyncContent from '@/ui/XAsyncContent.vue';
-import XPagination from '@/ui/XPagination.vue';
+import { XAsyncContent } from '@novelia/web-kit';
+import { XPagination } from '@novelia/web-kit';
 
 import PostListItem from './PostListItem.vue';
 

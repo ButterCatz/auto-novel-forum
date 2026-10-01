@@ -6,8 +6,8 @@ import {
   COMMENT_REPLY_PAGE_SIZE,
   useCommentReplyPageQuery,
 } from '@/stores/comment';
-import XButton from '@/ui/XButton.vue';
-import XPagination from '@/ui/XPagination.vue';
+import { XButton } from '@novelia/web-kit';
+import { XPagination } from '@novelia/web-kit';
 
 import CommentListItem from './CommentListItem.vue';
 
