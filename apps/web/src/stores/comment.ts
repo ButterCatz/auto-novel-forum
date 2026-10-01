@@ -128,7 +128,7 @@ export const useCommentStore = defineStore('comment', () => {
             ...page,
             items: page.items.map((item) =>
               item.id === comment.rootId
-                ? { ...item, replyCount: (item.replyCount ?? 0) + 1 }
+                ? { ...item, replyCount: item.replyCount + 1 }
                 : item,
             ),
           });

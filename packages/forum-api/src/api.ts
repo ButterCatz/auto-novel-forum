@@ -15,7 +15,7 @@ export interface Comment {
   status: CommentStatus;
   createdAt: string;
   updatedAt: string;
-  replyCount?: number;
+  replyCount: number;
 }
 
 export interface CommentPage {

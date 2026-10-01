@@ -46,9 +46,7 @@ function toggleReplies() {
 async function handleCreated(comment: PostComment) {
   const lastPage = Math.max(
     1,
-    Math.ceil(
-      ((props.comment.replyCount ?? total.value) + 1) / REPLY_PAGE_SIZE,
-    ),
+    Math.ceil((props.comment.replyCount + 1) / REPLY_PAGE_SIZE),
   );
   emit('created', comment);
   if (comment.rootId !== props.comment.id) return;
@@ -73,14 +71,14 @@ async function handleCreated(comment: PostComment) {
       @author-comments-deleted="emit('authorCommentsDeleted')"
     />
 
-    <div v-if="(comment.replyCount ?? 0) > 0" class="pb-3 pl-6 sm:pl-10">
+    <div v-if="comment.replyCount > 0" class="pb-3 pl-6 sm:pl-10">
       <XButton
         variant="plain"
         size="none"
         class="text-xs"
         @click="toggleReplies"
       >
-        {{ expanded ? '收起回复' : `查看 ${comment.replyCount ?? 0} 条回复` }}
+        {{ expanded ? '收起回复' : `查看 ${comment.replyCount} 条回复` }}
       </XButton>
     </div>
 
