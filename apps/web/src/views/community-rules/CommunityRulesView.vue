@@ -14,7 +14,7 @@ import { RouterLink } from 'vue-router';
         <strong class="font-semibold">不会自动解除</strong>
         <span>。处罚原因、依据和分值可在「</span>
         <RouterLink
-          :to="{ name: 'my-strikes' }"
+          :to="{ name: 'strikes' }"
           class="font-medium text-primary underline underline-offset-2 hover:text-primary-hover focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           处罚记录

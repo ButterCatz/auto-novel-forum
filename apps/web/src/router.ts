@@ -61,8 +61,8 @@ const router = createRouter({
       meta: { title: '我的帖子' },
     },
     {
-      path: '/my/strikes',
-      name: 'my-strikes',
+      path: '/strikes',
+      name: 'strikes',
       component: MyStrikeListView,
       meta: { title: '处罚记录' },
     },
