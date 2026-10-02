@@ -18,7 +18,6 @@ docker compose up -d
 
 - Web: localhost:5000
 - Api: localhost:5000/api
-- External Api: localhost:5002/api/v1/external（仅限服务器本机访问）
 - Postgresql: localhost:5001
 
 ## 前端开发

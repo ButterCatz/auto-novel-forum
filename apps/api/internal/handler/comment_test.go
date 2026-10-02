@@ -36,7 +36,7 @@ func (r *listingCommentRepository) ListReplies(_ int16, subjectKey string, rootI
 func TestExternalCommentRepliesArePaginatedSeparately(t *testing.T) {
 	repo := &listingCommentRepository{rootID: 7}
 	router := chi.NewRouter()
-	NewExternalCommentHandler(repo, nil).RegisterRoutes(router)
+	NewExternalCommentHandler(repo, nil, nil).RegisterRoutes(router)
 
 	for _, tc := range []struct {
 		path           string
@@ -147,7 +147,7 @@ func TestAdminCanModifyExternalCommentAfterWindow(t *testing.T) {
 				AuthorID: 1, CreatedAt: time.Now().Add(-21 * time.Minute),
 			}}
 			router := chi.NewRouter()
-			NewExternalCommentHandler(repo, nil).RegisterRoutes(router)
+			NewExternalCommentHandler(repo, nil, nil).RegisterRoutes(router)
 			token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 				"sub": "tester", "uid": 1, "role": tc.role,
 			}).SignedString([]byte(httpx.AccessTokenSecret))

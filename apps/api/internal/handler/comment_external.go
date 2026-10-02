@@ -1,24 +1,27 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
 	"auth/internal/domainfilter"
 	"auth/internal/httpx"
 	"auth/internal/repository"
+	"auth/internal/subject"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 )
 
 type externalCommentHandler struct {
-	repo    repository.CommentRepository
-	domains *domainfilter.Filter
+	repo     repository.CommentRepository
+	domains  *domainfilter.Filter
+	subjects subject.Checker
 }
 
-func NewExternalCommentHandler(repo repository.CommentRepository, domains *domainfilter.Filter) *externalCommentHandler {
-	return &externalCommentHandler{repo: repo, domains: domains}
+func NewExternalCommentHandler(repo repository.CommentRepository, domains *domainfilter.Filter, subjects subject.Checker) *externalCommentHandler {
+	return &externalCommentHandler{repo: repo, domains: domains, subjects: subjects}
 }
 
 func (h *externalCommentHandler) RegisterRoutes(router chi.Router) {
@@ -69,15 +72,6 @@ func newExternalCommentResponse(r *http.Request, value repository.Comment) exter
 	}
 }
 
-func externalCommentSubjectType(r *http.Request) (int16, error) {
-	switch chi.URLParam(r, "type") {
-	case "novel":
-		return repository.CommentSubjectNovel, nil
-	default:
-		return 0, httpx.BadRequest("不支持的外部资源类型")
-	}
-}
-
 func externalCommentID(r *http.Request) (int64, error) {
 	return httpx.ParseParamPositiveInt(r, "commentId")
 }
@@ -91,9 +85,9 @@ func externalCommentSubjectKey(r *http.Request) (string, error) {
 }
 
 func (h *externalCommentHandler) list(w http.ResponseWriter, r *http.Request) error {
-	subjectType, err := externalCommentSubjectType(r)
-	if err != nil {
-		return err
+	subjectType, ok := subject.TypeID(chi.URLParam(r, "type"))
+	if !ok {
+		return httpx.BadRequest("不支持的外部资源类型")
 	}
 	subjectKey, err := externalCommentSubjectKey(r)
 	if err != nil {
@@ -116,9 +110,9 @@ func (h *externalCommentHandler) list(w http.ResponseWriter, r *http.Request) er
 }
 
 func (h *externalCommentHandler) listReplies(w http.ResponseWriter, r *http.Request) error {
-	subjectType, err := externalCommentSubjectType(r)
-	if err != nil {
-		return err
+	subjectType, ok := subject.TypeID(chi.URLParam(r, "type"))
+	if !ok {
+		return httpx.BadRequest("不支持的外部资源类型")
 	}
 	subjectKey, err := externalCommentSubjectKey(r)
 	if err != nil {
@@ -148,10 +142,6 @@ func (h *externalCommentHandler) listReplies(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *externalCommentHandler) create(w http.ResponseWriter, r *http.Request) error {
-	subjectType, err := externalCommentSubjectType(r)
-	if err != nil {
-		return err
-	}
 	subjectKey, err := externalCommentSubjectKey(r)
 	if err != nil {
 		return err
@@ -162,6 +152,22 @@ func (h *externalCommentHandler) create(w http.ResponseWriter, r *http.Request) 
 	}
 	if err := validateComment(input, h.domains); err != nil {
 		return err
+	}
+	if h.subjects == nil {
+		return httpx.NewHttpError(http.StatusServiceUnavailable, "资源校验服务未配置")
+	}
+	subjectType, err := h.subjects.Check(r.Context(), chi.URLParam(r, "type"), subjectKey)
+	if err != nil {
+		switch {
+		case errors.Is(err, subject.ErrUnsupported):
+			return httpx.BadRequest("不支持的外部资源类型")
+		case errors.Is(err, subject.ErrNotFound):
+			return httpx.NotFound("评论所属资源不存在")
+		case errors.Is(err, subject.ErrInvalid):
+			return httpx.BadRequest("subjectKey 格式无效")
+		default:
+			return &httpx.HttpError{StatusCode: http.StatusServiceUnavailable, Message: "暂时无法校验资源，请稍后重试", Cause: err}
+		}
 	}
 	principal, _ := httpx.AuthenticatedPrincipal(r)
 	comment, err := h.repo.Create(repository.CreateCommentInput{
@@ -185,9 +191,9 @@ func (h *externalCommentHandler) create(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *externalCommentHandler) modifiableID(r *http.Request) (int16, int64, error) {
-	subjectType, err := externalCommentSubjectType(r)
-	if err != nil {
-		return 0, 0, err
+	subjectType, ok := subject.TypeID(chi.URLParam(r, "type"))
+	if !ok {
+		return 0, 0, httpx.BadRequest("不支持的外部资源类型")
 	}
 	id, err := externalCommentID(r)
 	if err != nil {
@@ -251,9 +257,9 @@ func (h *externalCommentHandler) delete(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *externalCommentHandler) setStatus(w http.ResponseWriter, r *http.Request) error {
-	subjectType, err := externalCommentSubjectType(r)
-	if err != nil {
-		return err
+	subjectType, ok := subject.TypeID(chi.URLParam(r, "type"))
+	if !ok {
+		return httpx.BadRequest("不支持的外部资源类型")
 	}
 	id, err := externalCommentID(r)
 	if err != nil {

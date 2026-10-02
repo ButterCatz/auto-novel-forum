@@ -65,7 +65,7 @@ func TestDomainFilterRejectsWrites(t *testing.T) {
 			router := chi.NewRouter()
 			router.Route("/post", NewPostHandler(posts, noFavoriteRepository{}, comments, domains).RegisterRoutes)
 			router.Route("/comment", NewCommentHandler(comments, domains).RegisterRoutes)
-			router.Route("/external/comment", NewExternalCommentHandler(comments, domains).RegisterRoutes)
+			router.Route("/external/comment", NewExternalCommentHandler(comments, domains, nil).RegisterRoutes)
 			request := httptest.NewRequest(tc.method, tc.path, strings.NewReader(tc.body))
 			request.Header.Set("Content-Type", "application/json")
 			request.Header.Set("Authorization", "Bearer "+token)

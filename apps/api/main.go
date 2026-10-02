@@ -6,6 +6,7 @@ import (
 	"auth/internal/httpx"
 	"auth/internal/infra"
 	"auth/internal/repository"
+	"auth/internal/subject"
 	"log/slog"
 	"net/http"
 	"os"
@@ -49,6 +50,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	subjects := subject.NewHTTPChecker()
+
 	// infra
 	db := infra.NewSQLDB(
 		env("DB_HOST", "localhost"),
@@ -69,7 +72,7 @@ func main() {
 	categoryHandler := handler.NewCategoryHandler(tagRepo)
 	postHandler := handler.NewPostHandler(postRepo, favoriteRepo, commentRepo, domains)
 	commentHandler := handler.NewCommentHandler(commentRepo, domains)
-	externalCommentHandler := handler.NewExternalCommentHandler(commentRepo, domains)
+	externalCommentHandler := handler.NewExternalCommentHandler(commentRepo, domains, subjects)
 	meHandler := handler.NewMeHandler(postRepo, favoriteRepo)
 
 	// router
