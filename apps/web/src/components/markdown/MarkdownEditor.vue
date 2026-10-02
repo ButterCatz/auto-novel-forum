@@ -9,7 +9,7 @@ import { nextTick, onMounted, ref, useTemplateRef, watch } from 'vue';
 
 import { XButton } from '@novelia/web-kit';
 
-import type { MarkdownMode } from '@novelia/forum-api';
+import { handleMarkdownLinkPaste, type MarkdownMode } from '@novelia/forum-api';
 import MarkdownContent from './MarkdownContent.vue';
 
 const props = withDefaults(
@@ -217,6 +217,7 @@ defineExpose({ focus });
         :aria-describedby="describedBy"
         :aria-invalid="invalid || undefined"
         spellcheck="false"
+        @paste="handleMarkdownLinkPaste($event, textarea)"
       />
     </div>
 
