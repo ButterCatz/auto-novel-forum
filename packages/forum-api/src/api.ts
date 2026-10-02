@@ -1,7 +1,8 @@
 import type { KyInstance } from 'ky';
+import type { subjectKeys } from './subject';
 
 /** Resource types supported by the forum service. */
-export type CommentType = 'novel';
+export type CommentType = keyof typeof subjectKeys;
 export type CommentStatus = 0 | 1 | 2;
 export type CommentStatusName = 'published' | 'hidden' | 'deleted';
 
